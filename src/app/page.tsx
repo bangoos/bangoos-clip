@@ -53,6 +53,14 @@ interface GameplaySettings {
   panY: number
 }
 
+interface ProcessedVideo {
+  filename: string
+  size: number
+  created: Date
+  modified: Date
+  downloadUrl: string
+}
+
 export default function VideoClipper() {
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [videoUrl, setVideoUrl] = useState<string>('')
@@ -63,6 +71,7 @@ export default function VideoClipper() {
   const [logoPath, setLogoPath] = useState<string>('')
   const [socketConnected, setSocketConnected] = useState(false)
   const [downloadProgress, setDownloadProgress] = useState(0)
+  const [processedVideos, setProcessedVideos] = useState<ProcessedVideo[]>([])
   const [facecamSettings, setFacecamSettings] = useState<FacecamSettings>({
     height: 40,
     zoom: 100,
@@ -187,8 +196,64 @@ export default function VideoClipper() {
     setLogs(prev => [...prev, `[${timestamp}] ${message}`])
   }
 
+  // Fetch processed videos list
+  const fetchProcessedVideos = async () => {
+    try {
+      const response = await fetch('/api/list-videos')
+      const data = await response.json()
+      
+      if (data.success) {
+        setProcessedVideos(data.videos)
+        addLog(`Found ${data.videos.length} processed video(s)`)
+      }
+    } catch (error) {
+      console.error('Error fetching videos:', error)
+    }
+  }
+
+  // Download processed video
+  const handleDownload = async (filename: string) => {
+    try {
+      addLog(`Downloading: ${filename}...`)
+      
+      const response = await fetch(`/api/download-video?filename=${encodeURIComponent(filename)}`)
+      
+      if (!response.ok) {
+        addLog(`✗ Download failed for ${filename}`)
+        return
+      }
+      
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+      
+      addLog(`✓ Downloaded: ${filename}`)
+    } catch (error) {
+      addLog('✗ Error downloading video')
+      console.error(error)
+    }
+  }
+
+  // Format file size
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+  }
+
   // WebSocket connection
   useEffect(() => {
+    // Fetch processed videos on mount
+    fetchProcessedVideos()
+    
     const socketInstance = io('/?XTransformPort=3002', {
       transports: ['websocket', 'polling']
     })
@@ -227,6 +292,8 @@ export default function VideoClipper() {
       if (data.success) {
         addLog('✓ All clips processed successfully!')
         addLog(`Output saved to: Downloads/KlipPod_Output`)
+        // Refresh processed videos list
+        fetchProcessedVideos()
       } else {
         addLog(`✗ Processing failed: ${data.error}`)
       }
@@ -759,6 +826,78 @@ export default function VideoClipper() {
                     ))
                   )}
                 </ScrollArea>
+              </CardContent>
+            </Card>
+
+            {/* Processed Videos */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5" />
+                    Processed Videos
+                  </span>
+                  <Badge variant="secondary">{processedVideos.length} videos</Badge>
+                </CardTitle>
+                <CardDescription>
+                  Download your processed clips
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={fetchProcessedVideos}
+                  className="w-full"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Refresh List
+                </Button>
+
+                {processedVideos.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <CheckCircle2 className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No processed videos yet</p>
+                    <p className="text-xs">Process some clips to see results here</p>
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[250px] pr-4">
+                    <div className="space-y-3">
+                      {processedVideos.map((video, index) => (
+                        <Card key={index} className="p-4 hover:bg-muted/50 transition-colors">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Video className="w-4 h-4 text-green-600" />
+                                <span className="text-sm font-semibold truncate">
+                                  {video.filename}
+                                </span>
+                              </div>
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                  <span>Size: {formatFileSize(video.size)}</span>
+                                  <span>
+                                    Created: {new Date(video.created).toLocaleDateString()}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {new Date(video.modified).toLocaleString()}
+                                </div>
+                              </div>
+                            </div>
+                            <Button 
+                              size="sm" 
+                              onClick={() => handleDownload(video.filename)}
+                              className="shrink-0"
+                            >
+                              <Download className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
               </CardContent>
             </Card>
           </div>
