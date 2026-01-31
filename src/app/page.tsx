@@ -1053,7 +1053,6 @@ export default function VideoClipper() {
                     </div>
                   </div>
                 </div>
-                  )}
 
                 <Separator />
 
@@ -1141,7 +1140,6 @@ export default function VideoClipper() {
                     </div>
                   </div>
                 </div>
-                  )}
               </CardContent>
             </Card>
 
