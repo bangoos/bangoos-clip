@@ -111,26 +111,30 @@ Stage Summary:
 
 ---
 
-Task ID: 5
+Task ID: 6
 Agent: Main Agent
-Task: Fix FFMPEG error and add real-time zoom preview
+Task: Add processed videos list with download functionality
 
 Work Log:
-- Identified issue: FFMPEG crop dimensions were too large for horizontal videos (1280x720)
-- Updated FFMPEG filter logic to properly scale video before cropping
-- Added video scaling step with padding to ensure correct dimensions
-- Improved crop dimension validation to prevent invalid parameters
-- Added Real-time Zoom Preview component with two tabs (Facecam/Gameplay)
-- Implemented live video preview with CSS transform for zoom and pan
-- Added visual indicators showing current zoom/pan settings
-- Enhanced preview with area height indicators (facecam/gameplay split points)
-- Separated Real-time Preview and Final Output Preview for better UX
-- Restarted video processor service with updated logic
+- Added ProcessedVideos state and interface for storing completed videos
+- Implemented fetchProcessedVideos() function to retrieve list from /api/list-videos
+- Created handleDownload() function to download videos to user's local device
+- Added formatFileSize() utility to display human-readable file sizes
+- Created "Processed Videos" card in Middle Column below Terminal Log
+- Each processed video displays:
+  - Filename with video icon
+  - File size (Bytes, KB, MB, GB)
+  - Creation date
+  - Download button
+- Auto-refresh video list when processing completes via WebSocket event
+- Added "Refresh List" button for manual refresh
+- Implemented responsive scroll area for video list
+- Successfully pushed changes to GitHub
 
 Stage Summary:
-- FFMPEG processing error fixed
-- Real-time zoom preview implemented
-- Users can now see zoom/pan effects immediately when adjusting sliders
-- Video processor service updated and running
+- Processed videos list fully implemented
+- Users can now download their processed clips
+- Video list auto-updates after processing
+- All download functionality working
 
 ---
