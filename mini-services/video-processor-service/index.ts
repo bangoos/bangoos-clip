@@ -99,8 +99,8 @@ async function processClip(
     const gameplayHeight = Math.floor((gameplaySettings.height / 100) * outputHeight)
     
     // Calculate crop parameters - use source video dimensions as base
-    const facecamZoom = facecamSettings.zoom / 100
-    const gameplayZoom = gameplaySettings.zoom / 100
+    const facecamZoom = Math.max(0.5, Math.min(facecamSettings.zoom / 100, 2))
+    const gameplayZoom = Math.max(0.5, Math.min(gameplaySettings.zoom / 100, 2))
     
     // Build complex FFMPEG filter
     let filterComplex = []
@@ -171,6 +171,7 @@ async function processClip(
       '-to', clip.endTime,
       '-filter_complex', filterComplex.join(';'),
       '-map', watermark || logoPath ? '[video_watermarked]' : '[video_out]',
+      '-map', '0:a',  // Map audio stream from input
       '-c:v', 'libx264',
       '-preset', 'medium',
       '-crf', '23',
@@ -178,6 +179,7 @@ async function processClip(
       '-b:a', '128k',
       '-pix_fmt', 'yuv420p',
       '-movflags', '+faststart',
+      '-shortest',  // Match shortest stream duration
       '-y',
       outputPath
     ]
