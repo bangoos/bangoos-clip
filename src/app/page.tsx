@@ -436,61 +436,167 @@ export default function VideoClipper() {
               </CardContent>
             </Card>
 
-            {/* Clipping Preview */}
+            {/* Real-time Zoom Preview */}
             <Card>
               <CardHeader>
-                <CardTitle>9:16 Output Preview</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <ZoomIn className="w-5 h-5" />
+                  Real-time Zoom Preview
+                </CardTitle>
                 <CardDescription>
-                  Final output preview with split mode
+                  See zoom & pan effects in real-time
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue="facecam" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-4">
+                    <TabsTrigger value="facecam">
+                      Facecam Area
+                    </TabsTrigger>
+                    <TabsTrigger value="gameplay">
+                      Gameplay Area
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="facecam" className="mt-4">
+                    <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[500px] mx-auto">
+                      {videoUrl ? (
+                        <video
+                          src={videoUrl}
+                          className="w-full h-full object-cover"
+                          style={{
+                            transform: `scale(${facecamSettings.zoom / 100}) translate(${facecamSettings.panX * 2}px, ${facecamSettings.panY * 2}px)`,
+                            transformOrigin: 'center'
+                          }}
+                          muted
+                          loop
+                          autoPlay
+                        />
+                      ) : null}
+                      
+                      {/* Facecam crop indicator */}
+                      <div className="absolute inset-0 border-4 border-blue-500/70 pointer-events-none rounded">
+                        <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded font-bold">
+                          FACECAM
+                        </div>
+                        <div className="absolute bottom-2 left-2 bg-black/70 text-blue-300 text-xs px-2 py-1 rounded">
+                          Zoom: {facecamSettings.zoom}% | Pan: {facecamSettings.panX}, {facecamSettings.panY}
+                        </div>
+                      </div>
+
+                      {/* Facecam area height indicator */}
+                      <div 
+                        className="absolute top-0 left-0 right-0 border-t-4 border-dashed border-blue-400"
+                        style={{ top: `${facecamSettings.height}%` }}
+                      >
+                        <div className="absolute -top-6 left-2 text-xs text-blue-400 font-bold whitespace-nowrap">
+                          Facecam Area Bottom ({facecamSettings.height}%)
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="gameplay" className="mt-4">
+                    <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[500px] mx-auto">
+                      {videoUrl ? (
+                        <video
+                          src={videoUrl}
+                          className="w-full h-full object-cover"
+                          style={{
+                            transform: `scale(${gameplaySettings.zoom / 100}) translate(${gameplaySettings.panX * 2}px, ${gameplaySettings.panY * 2}px)`,
+                            transformOrigin: 'center'
+                          }}
+                          muted
+                          loop
+                          autoPlay
+                        />
+                      ) : null}
+                      
+                      {/* Gameplay crop indicator */}
+                      <div className="absolute inset-0 border-4 border-green-500/70 pointer-events-none rounded">
+                        <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded font-bold">
+                          GAMEPLAY
+                        </div>
+                        <div className="absolute bottom-2 left-2 bg-black/70 text-green-300 text-xs px-2 py-1 rounded">
+                          Zoom: {gameplaySettings.zoom}% | Pan: {gameplaySettings.panX}, {gameplaySettings.panY}
+                        </div>
+                      </div>
+
+                      {/* Gameplay area height indicator */}
+                      <div 
+                        className="absolute top-0 left-0 right-0 border-b-4 border-dashed border-green-400"
+                        style={{ height: `${gameplaySettings.height}%` }}
+                      >
+                        <div className="absolute -bottom-6 left-2 text-xs text-green-400 font-bold whitespace-nowrap">
+                          Gameplay Area Top ({gameplaySettings.height}%)
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+
+                {!videoUrl && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <ZoomIn className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Upload a video to see real-time preview</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* 9:16 Split Preview */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Final Output Preview</CardTitle>
+                <CardDescription>
+                  How your 9:16 video will look
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[500px] mx-auto">
                   {/* Facecam Area */}
                   <div 
-                    className="absolute top-0 left-0 right-0 bg-blue-900/30 border-b-2 border-blue-500/50"
+                    className="absolute top-0 left-0 right-0 bg-gradient-to-b from-blue-900/40 to-blue-900/20 border-b-2 border-blue-500/60"
                     style={{ height: `${facecamSettings.height}%` }}
                   >
-                    <div className="absolute inset-0 flex items-center justify-center text-white/70 text-sm">
+                    <div className="absolute inset-0 flex items-center justify-center text-white/80">
                       <div className="text-center p-4">
-                        <span className="block text-lg font-bold">Facecam</span>
-                        <span className="text-xs">
-                          {facecamSettings.zoom}% Zoom | 
-                          Pan X: {facecamSettings.panX} | 
-                          Pan Y: {facecamSettings.panY}
-                        </span>
+                        <span className="block text-lg font-bold mb-1">Facecam</span>
+                        <div className="flex gap-2 justify-center text-xs">
+                          <span className="bg-black/50 px-2 py-1 rounded">Zoom: {facecamSettings.zoom}%</span>
+                          <span className="bg-black/50 px-2 py-1 rounded">Pan: {facecamSettings.panX}, {facecamSettings.panY}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                   
                   {/* Gameplay Area */}
                   <div 
-                    className="absolute bottom-0 left-0 right-0 bg-green-900/30 border-t-2 border-green-500/50"
+                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-green-900/40 to-green-900/20 border-t-2 border-green-500/60"
                     style={{ height: `${gameplaySettings.height}%` }}
                   >
-                    <div className="absolute inset-0 flex items-center justify-center text-white/70 text-sm">
+                    <div className="absolute inset-0 flex items-center justify-center text-white/80">
                       <div className="text-center p-4">
-                        <span className="block text-lg font-bold">Gameplay</span>
-                        <span className="text-xs">
-                          {gameplaySettings.zoom}% Zoom | 
-                          Pan X: {gameplaySettings.panX} | 
-                          Pan Y: {gameplaySettings.panY}
-                        </span>
+                        <span className="block text-lg font-bold mb-1">Gameplay</span>
+                        <div className="flex gap-2 justify-center text-xs">
+                          <span className="bg-black/50 px-2 py-1 rounded">Zoom: {gameplaySettings.zoom}%</span>
+                          <span className="bg-black/50 px-2 py-1 rounded">Pan: {gameplaySettings.panX}, {gameplaySettings.panY}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Watermark Preview */}
                   {watermark && (
-                    <div className="absolute bottom-4 right-4 text-white/80 text-xs font-bold bg-black/50 px-3 py-1 rounded">
+                    <div className="absolute bottom-4 right-4 text-white/90 text-xs font-bold bg-black/60 px-3 py-1.5 rounded backdrop-blur-sm">
                       {watermark}
                     </div>
                   )}
 
                   {/* Logo Preview */}
                   {logoFile && (
-                    <div className="absolute bottom-4 left-4 bg-black/50 p-2 rounded">
-                      <ImageIcon className="w-6 h-6 text-white/80" />
+                    <div className="absolute bottom-4 left-4 bg-black/60 p-2 rounded backdrop-blur-sm">
+                      <ImageIcon className="w-6 h-6 text-white/90" />
                     </div>
                   )}
                 </div>

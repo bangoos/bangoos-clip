@@ -98,38 +98,55 @@ async function processClip(
     const facecamHeight = Math.floor((facecamSettings.height / 100) * outputHeight)
     const gameplayHeight = Math.floor((gameplaySettings.height / 100) * outputHeight)
     
-    // Calculate crop parameters
+    // Calculate crop parameters - use source video dimensions as base
     const facecamZoom = facecamSettings.zoom / 100
     const gameplayZoom = gameplaySettings.zoom / 100
     
     // Build complex FFMPEG filter
     let filterComplex = []
     
-    // Input video
-    filterComplex.push('[0:v]split=2[facecam_src][gameplay_src]')
+    // First scale the video to output width, maintain aspect ratio
+    filterComplex.push(`[0:v]scale=${outputWidth}:-2,pad=${outputWidth}:${outputHeight}:(ow-iw)/2:(oh-ih)/2[v_full]`)
     
-    // Facecam processing
+    // Now split the scaled video
+    filterComplex.push('[v_full]split=2[facecam_src][gameplay_src]')
+    
+    // Facecam processing - crop from the facecam portion of the scaled video
     const facecamCropWidth = Math.floor(outputWidth / facecamZoom)
     const facecamCropHeight = Math.floor(facecamHeight / facecamZoom)
-    const facecamX = Math.floor((outputWidth - facecamCropWidth) / 2 + facecamSettings.panX * 2)
-    const facecamY = Math.floor((facecamHeight - facecamCropHeight) / 2 + facecamSettings.panY * 2)
+    // Calculate crop position based on pan settings
+    const facecamX = Math.floor((outputWidth - facecamCropWidth) / 2 + facecamSettings.panX * 5)
+    const facecamY = Math.floor((facecamHeight - facecamCropHeight) / 2 + facecamSettings.panY * 5)
+    
+    // Ensure crop dimensions are valid
+    const validFacecamWidth = Math.max(1, Math.min(facecamCropWidth, outputWidth))
+    const validFacecamHeight = Math.max(1, Math.min(facecamCropHeight, facecamHeight))
+    const validFacecamX = Math.max(0, Math.min(facecamX, outputWidth - validFacecamWidth))
+    const validFacecamY = Math.max(0, Math.min(facecamY, facecamHeight - validFacecamHeight))
     
     filterComplex.push(
       `[facecam_src]` +
-      `crop=${facecamCropWidth}:${facecamCropHeight}:${facecamX}:${facecamY},` +
+      `crop=${validFacecamWidth}:${validFacecamHeight}:${validFacecamX}:${validFacecamY},` +
       `scale=${outputWidth}:${facecamHeight},` +
       `setsar=1:1[facecam]`
     )
     
-    // Gameplay processing
+    // Gameplay processing - crop from the gameplay portion
     const gameplayCropWidth = Math.floor(outputWidth / gameplayZoom)
     const gameplayCropHeight = Math.floor(gameplayHeight / gameplayZoom)
-    const gameplayX = Math.floor((outputWidth - gameplayCropWidth) / 2 + gameplaySettings.panX * 2)
-    const gameplayY = Math.floor((gameplayHeight - gameplayCropHeight) / 2 + gameplaySettings.panY * 2)
+    // Calculate crop position based on pan settings (offset from top of gameplay area)
+    const gameplayX = Math.floor((outputWidth - gameplayCropWidth) / 2 + gameplaySettings.panX * 5)
+    const gameplayY = Math.floor((facecamHeight - gameplayCropHeight) / 2 + gameplaySettings.panY * 5)
+    
+    // Ensure crop dimensions are valid
+    const validGameplayWidth = Math.max(1, Math.min(gameplayCropWidth, outputWidth))
+    const validGameplayHeight = Math.max(1, Math.min(gameplayCropHeight, outputHeight))
+    const validGameplayX = Math.max(0, Math.min(gameplayX, outputWidth - validGameplayWidth))
+    const validGameplayY = Math.max(0, Math.min(gameplayY, outputHeight - validGameplayHeight))
     
     filterComplex.push(
       `[gameplay_src]` +
-      `crop=${gameplayCropWidth}:${gameplayCropHeight}:${gameplayX}:${gameplayY},` +
+      `crop=${validGameplayWidth}:${validGameplayHeight}:${validGameplayX}:${validGameplayY},` +
       `scale=${outputWidth}:${gameplayHeight},` +
       `setsar=1:1[gameplay]`
     )
