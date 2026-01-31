@@ -13,6 +13,8 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { 
   Upload, 
   Youtube, 
@@ -29,7 +31,9 @@ import {
   Image as ImageIcon,
   Terminal,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  X,
+  Eye
 } from 'lucide-react'
 
 interface Clip {
@@ -72,6 +76,9 @@ export default function VideoClipper() {
   const [socketConnected, setSocketConnected] = useState(false)
   const [downloadProgress, setDownloadProgress] = useState(0)
   const [processedVideos, setProcessedVideos] = useState<ProcessedVideo[]>([])
+  const [splitEnabled, setSplitEnabled] = useState<boolean>(true)
+  const [previewModalOpen, setPreviewModalOpen] = useState(false)
+  const [previewClip, setPreviewClip] = useState<Clip | null>(null)
   const [facecamSettings, setFacecamSettings] = useState<FacecamSettings>({
     height: 40,
     zoom: 100,
@@ -175,6 +182,17 @@ export default function VideoClipper() {
     setClips([...clips, newClip])
     setCurrentClipId(newClip.id)
     addLog(`Added new clip: ${newClip.name}`)
+  }
+
+  const openClipPreview = (clip: Clip) => {
+    setPreviewClip(clip)
+    setPreviewModalOpen(true)
+    addLog(`Previewing clip: ${clip.name}`)
+  }
+
+  const timeToSeconds = (timeStr: string): number => {
+    const parts = timeStr.split(':').map(Number)
+    return parts[0] * 3600 + parts[1] * 60 + parts[2]
   }
 
   const removeClip = (id: string) => {
@@ -352,7 +370,8 @@ export default function VideoClipper() {
       facecamSettings,
       gameplaySettings,
       watermark,
-      logoPath: logoPath || undefined
+      logoPath: logoPath || undefined,
+      splitEnabled  // Send split mode toggle to backend
     })
   }
 
@@ -725,17 +744,30 @@ export default function VideoClipper() {
                                   placeholder="Clip name"
                                 />
                               </div>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  removeClip(clip.id)
-                                }}
-                                disabled={processing}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                              <div className="flex gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    openClipPreview(clip)
+                                  }}
+                                  disabled={processing}
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    removeClip(clip.id)
+                                  }}
+                                  disabled={processing}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                             </div>
                             
                             <div className="grid grid-cols-2 gap-3">
@@ -916,8 +948,31 @@ export default function VideoClipper() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Split Mode Toggle */}
+                <div className="flex items-center justify-between pb-4 border-b">
+                  <div className="flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-primary" />
+                    <Label htmlFor="split-toggle" className="cursor-pointer">
+                      Enable Split View (Facecam + Gameplay)
+                    </Label>
+                  </div>
+                  <Switch
+                    id="split-toggle"
+                    checked={splitEnabled}
+                    onCheckedChange={setSplitEnabled}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {splitEnabled 
+                    ? "Split video into facecam (top) and gameplay (bottom) sections"
+                    : "Render full video without splitting"
+                  }
+                </p>
+                
                 {/* Facecam Settings */}
-                <div className="space-y-4">
+                {splitEnabled && (
+                  <>
+                  <div className="space-y-4">
                   <div className="flex items-center gap-2 pb-2 border-b">
                     <Video className="w-4 h-4 text-blue-500" />
                     <h3 className="font-semibold">Facecam Area</h3>
@@ -998,11 +1053,14 @@ export default function VideoClipper() {
                     </div>
                   </div>
                 </div>
+                  )}
 
                 <Separator />
 
                 {/* Gameplay Settings */}
-                <div className="space-y-4">
+                {splitEnabled && (
+                  <>
+                  <div className="space-y-4">
                   <div className="flex items-center gap-2 pb-2 border-b">
                     <Video className="w-4 h-4 text-green-500" />
                     <h3 className="font-semibold">Gameplay Area</h3>
@@ -1083,6 +1141,7 @@ export default function VideoClipper() {
                     </div>
                   </div>
                 </div>
+                  )}
               </CardContent>
             </Card>
 
@@ -1169,6 +1228,143 @@ export default function VideoClipper() {
             </div>
           </div>
         </div>
+      </main>
+
+      {/* Clip Preview Dialog */}
+      <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Video className="w-5 h-5" />
+              Clip Preview: {previewClip?.name}
+            </DialogTitle>
+            <DialogDescription>
+              {previewClip?.startTime} to {previewClip?.endTime}
+            </DialogDescription>
+          </DialogHeader>
+
+          {previewClip && videoUrl && (
+            <div className="space-y-4">
+              {/* Full Video Preview */}
+              <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+                <video
+                  src={videoUrl}
+                  className="w-full h-full object-contain"
+                  controls
+                  autoPlay
+                  muted
+                />
+              </div>
+
+              {/* Preview Settings Info */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">Clip Info</h4>
+                  <div className="text-xs space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Name:</span>
+                      <span className="font-medium">{previewClip.name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Start:</span>
+                      <span className="font-mono">{previewClip.startTime}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">End:</span>
+                      <span className="font-mono">{previewClip.endTime}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Duration:</span>
+                      <span className="font-mono">{(timeToSeconds(previewClip.endTime) - timeToSeconds(previewClip.startTime)).toFixed(1)}s</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">Split Mode</h4>
+                  <div className="text-xs space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Mode:</span>
+                      <span className="font-medium">{splitEnabled ? "Enabled (Facecam + Gameplay)" : "Disabled (Full Video)"}</span>
+                    </div>
+                    {splitEnabled && (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Facecam Height:</span>
+                          <span className="font-mono">{facecamSettings.height}%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Gameplay Height:</span>
+                          <span className="font-mono">{gameplaySettings.height}%</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Output Preview */}
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm mb-2">9:16 Output Preview</h4>
+                <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[400px] mx-auto">
+                  {splitEnabled ? (
+                    <>
+                      {/* Split View */}
+                      <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-blue-900/40 to-blue-900/20 border-b-2 border-blue-500/60" style={{ height: \`\${facecamSettings.height}%\` }}>
+                        <div className="absolute inset-0 flex items-center justify-center text-white/80">
+                          <div className="text-center p-4">
+                            <span className="block text-lg font-bold mb-1">Facecam</span>
+                            <div className="flex gap-2 justify-center text-xs">
+                              <span className="bg-black/50 px-2 py-1 rounded">Zoom: {facecamSettings.zoom}%</span>
+                              <span className="bg-black/50 px-2 py-1 rounded">Pan: {facecamSettings.panX}, {facecamSettings.panY}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-green-900/40 to-green-900/20 border-t-2 border-green-500/60" style={{ height: \`\${gameplaySettings.height}%\` }}>
+                        <div className="absolute inset-0 flex items-center justify-center text-white/80">
+                          <div className="text-center p-4">
+                            <span className="block text-lg font-bold mb-1">Gameplay</span>
+                            <div className="flex gap-2 justify-center text-xs">
+                              <span className="bg-black/50 px-2 py-1 rounded">Zoom: {gameplaySettings.zoom}%</span>
+                              <span className="bg-black/50 px-2 py-1 rounded">Pan: {gameplaySettings.panX}, {gameplaySettings.panY}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Full View */}
+                      <div className="absolute inset-0 flex items-center justify-center text-white/80 bg-gradient-to-br from-gray-900/40 to-gray-900/20">
+                        <div className="text-center p-4">
+                          <span className="block text-lg font-bold mb-1">Full Video</span>
+                          <span className="text-sm">9:16 vertical format</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Watermark Preview */}
+                  {watermark && (
+                    <div className="absolute bottom-4 right-4 text-white/90 text-xs font-bold bg-black/60 px-3 py-1.5 rounded backdrop-blur-sm">
+                      {watermark}
+                    </div>
+                  )}
+
+                  {/* Logo Preview */}
+                  {logoFile && (
+                    <div className="absolute bottom-4 left-4 bg-black/60 p-2 rounded backdrop-blur-sm">
+                      <ImageIcon className="w-6 h-6 text-white/90" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       </footer>
     </div>
   )
