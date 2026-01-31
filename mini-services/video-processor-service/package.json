@@ -1,0 +1,17 @@
+{
+  "name": "video-processor-service",
+  "version": "1.0.0",
+  "description": "WebSocket service for video processing with FFMPEG",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "dev": "bun --hot index.ts",
+    "start": "bun index.ts"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0"
+  }
+}
