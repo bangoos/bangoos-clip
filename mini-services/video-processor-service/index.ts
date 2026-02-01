@@ -157,10 +157,13 @@ async function processClip(
       // Full video mode: Scale to 9:16 with zoom/pan
       const zoom = Math.max(0.5, Math.min(facecamSettings.zoom / 100, 2))
 
-      // First scale video to output width (1080)
-      filterComplex.push(`[0:v]scale=${outputWidth}:-2[scaled]`)
+      // First scale video to maintain aspect ratio within output dimensions
+      filterComplex.push(`[0:v]scale=${outputWidth}:${outputHeight}:force_original_aspect_ratio[v_scaled]`)
 
-      // Calculate crop dimensions based on zoom
+      // Then pad to full output size if needed
+      filterComplex.push(`[v_scaled]pad=${outputWidth}:${outputHeight}:(ow-iw)/2:(oh-ih)/2[video_padded]`)
+
+      // Now apply zoom/pan crop
       const cropWidth = Math.floor(outputWidth / zoom)
       const cropHeight = Math.floor(outputHeight / zoom)
 
@@ -174,9 +177,9 @@ async function processClip(
       const validX = Math.max(0, Math.min(panX, outputWidth - validWidth))
       const validY = Math.max(0, Math.min(panY, outputHeight - validHeight))
 
-      // Crop from scaled video and scale to output height
+      // Crop and scale to exact output dimensions
       filterComplex.push(
-        `[scaled]` +
+        `[video_padded]` +
         `crop=${validWidth}:${validHeight}:${validX}:${validY},` +
         `scale=${outputWidth}:${outputHeight},` +
         `setsar=1:1[video_out]`
