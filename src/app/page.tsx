@@ -499,7 +499,7 @@ export default function VideoClipper() {
                       {/* Original Video - Portrait Preview */}
                       <div className="flex flex-col items-center gap-1.5">
                         <div className="text-[10px] text-muted-foreground font-medium">SOURCE</div>
-                        <div className="relative bg-black rounded-lg overflow-hidden border border-border/30" style={{ width: '180px', height: '320px' }}>
+                        <div className="relative bg-black rounded-lg overflow-hidden border border-border/30" style={{ width: '270px', height: '480px' }}>
                           <video
                             ref={videoRef}
                             src={videoUrl}
@@ -512,7 +512,7 @@ export default function VideoClipper() {
                       {/* Live Preview - Portrait 9:16 */}
                       <div className="flex flex-col items-center gap-1.5">
                         <div className="text-[10px] text-primary font-bold">PREVIEW</div>
-                        <div className="relative bg-black rounded-lg overflow-hidden border border-primary/30" style={{ width: '180px', height: '320px' }}>
+                        <div className="relative bg-black rounded-lg overflow-hidden border border-primary/30" style={{ width: '270px', height: '480px' }}>
                           {splitEnabled ? (
                             <>
                               {/* Split Mode - Real-time Video Preview */}
@@ -583,9 +583,9 @@ export default function VideoClipper() {
                 )}
 
                 {!videoUrl && (
-                  <div className="flex flex-col items-center justify-center bg-muted/30 rounded-lg border-2 border-dashed border-muted/40 py-12">
+                  <div className="flex flex-col items-center justify-center bg-muted/30 rounded-lg border-2 border-dashed border-muted/40 py-16">
                     <div className="text-center text-muted-foreground">
-                      <Video className="w-10 h-10 mx-auto mb-3 opacity-40" />
+                      <Video className="w-12 h-12 mx-auto mb-4 opacity-40" />
                       <p className="text-sm">Upload video for 9:16 preview</p>
                     </div>
                   </div>
