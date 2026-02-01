@@ -406,8 +406,8 @@ export default function VideoClipper() {
 
       {/* Main Content */}
       <main className="flex-1 container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Input & Video Preview */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column - Video Previews */}
           <div className="space-y-6">
             {/* Input Manager */}
             <Card>
@@ -432,7 +432,7 @@ export default function VideoClipper() {
                       YouTube
                     </TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="upload" className="space-y-4 mt-4">
                     <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/50 transition-colors cursor-pointer"
                          onClick={() => fileInputRef.current?.click()}>
@@ -478,8 +478,8 @@ export default function VideoClipper() {
                         onChange={(e) => setYoutubeUrl(e.target.value)}
                       />
                     </div>
-                    <Button 
-                      className="w-full" 
+                    <Button
+                      className="w-full"
                       onClick={handleYoutubeUrl}
                       disabled={!youtubeUrl}
                     >
@@ -491,141 +491,144 @@ export default function VideoClipper() {
               </CardContent>
             </Card>
 
-            {/* Video Preview */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Video Preview</CardTitle>
-                <CardDescription>
-                  Original video preview
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {videoUrl ? (
-                  <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-                    <video
-                      ref={videoRef}
-                      src={videoUrl}
-                      className="w-full h-full object-contain"
-                      controls
-                    />
-                  </div>
-                ) : (
-                  <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                    <div className="text-center">
-                      <Video className="w-12 h-12 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        No video loaded
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Real-time Zoom Preview */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ZoomIn className="w-5 h-5" />
-                  {splitEnabled ? 'Split Layout Preview' : 'Live Zoom Preview'}
-                </CardTitle>
-                <CardDescription>
-                  {splitEnabled ? 'Preview the split layout (zoom/pan for visual only)' : 'See zoom & pan effects in real-time'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {splitEnabled ? (
-                  // Split Mode - Layout Preview Only
-                  <Tabs defaultValue="facecam" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 mb-4">
-                      <TabsTrigger value="facecam">
-                        Facecam (Top)
-                      </TabsTrigger>
-                      <TabsTrigger value="gameplay">
-                        Gameplay (Bottom)
-                      </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="facecam" className="mt-4">
-                      <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[500px] mx-auto">
-                        <div
-                          className="absolute inset-0 bg-gradient-to-b from-blue-900/40 to-blue-900/20"
-                          style={{ height: `${facecamSettings.height}%` }}
-                        >
-                          <div className="absolute inset-0 flex items-center justify-center text-white/80">
-                            <div className="text-center p-4">
-                              <span className="block text-lg font-bold mb-1">Facecam Area</span>
-                              <span className="text-xs">Layout preview (top {facecamSettings.height}% of video)</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="gameplay" className="mt-4">
-                      <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[500px] mx-auto">
-                        <div
-                          className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-green-900/40 to-green-900/20"
-                          style={{ height: `${gameplaySettings.height}%` }}
-                        >
-                          <div className="absolute inset-0 flex items-center justify-center text-white/80">
-                            <div className="text-center p-4">
-                              <span className="block text-lg font-bold mb-1">Gameplay Area</span>
-                              <span className="text-xs">Layout preview (bottom {gameplaySettings.height}% of video)</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                ) : (
-                  // Full Mode - Live Zoom Preview
-                  <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[500px] mx-auto">
-                    {videoUrl ? (
+            {/* Video & Preview Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Video Preview */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Original Video</CardTitle>
+                  <CardDescription>
+                    Source video
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {videoUrl ? (
+                    <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
                       <video
+                        ref={videoRef}
                         src={videoUrl}
-                        className="w-full h-full object-cover"
-                        style={{
-                          transform: `scale(${facecamSettings.zoom / 100}) translate(${facecamSettings.panX * 2}px, ${facecamSettings.panY * 2}px)`,
-                          transformOrigin: 'center'
-                        }}
-                        muted
-                        loop
-                        autoPlay
+                        className="w-full h-full object-contain"
+                        controls
                       />
-                    ) : null}
-
-                    {/* Zoom/Pan indicator overlay */}
-                    <div className="absolute inset-0 border-4 border-green-500/70 pointer-events-none rounded">
-                      <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded font-bold">
-                        LIVE ZOOM PREVIEW
-                      </div>
-                      <div className="absolute bottom-2 left-2 bg-black/70 text-green-300 text-xs px-2 py-1 rounded">
-                        Zoom: {facecamSettings.zoom}% | Pan: {facecamSettings.panX}, {facecamSettings.panY}
+                    </div>
+                  ) : (
+                    <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+                      <div className="text-center">
+                        <Video className="w-12 h-12 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          No video loaded
+                        </p>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </CardContent>
+              </Card>
 
-                {!videoUrl && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <ZoomIn className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Upload a video to see preview</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+              {/* Real-time Zoom Preview */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ZoomIn className="w-5 h-5" />
+                    {splitEnabled ? 'Layout Preview' : 'Live Preview'}
+                  </CardTitle>
+                  <CardDescription>
+                    {splitEnabled ? 'Split layout' : 'Zoom & pan effects'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {splitEnabled ? (
+                    // Split Mode - Layout Preview Only
+                    <Tabs defaultValue="facecam" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2 mb-4">
+                        <TabsTrigger value="facecam">
+                          Facecam
+                        </TabsTrigger>
+                        <TabsTrigger value="gameplay">
+                          Gameplay
+                        </TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="facecam" className="mt-4">
+                        <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[400px] mx-auto">
+                          <div
+                            className="absolute inset-0 bg-gradient-to-b from-blue-900/40 to-blue-900/20"
+                            style={{ height: `${facecamSettings.height}%` }}
+                          >
+                            <div className="absolute inset-0 flex items-center justify-center text-white/80">
+                              <div className="text-center p-4">
+                                <span className="block text-lg font-bold mb-1">Facecam</span>
+                                <span className="text-xs">Top {facecamSettings.height}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="gameplay" className="mt-4">
+                        <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[400px] mx-auto">
+                          <div
+                            className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-green-900/40 to-green-900/20"
+                            style={{ height: `${gameplaySettings.height}%` }}
+                          >
+                            <div className="absolute inset-0 flex items-center justify-center text-white/80">
+                              <div className="text-center p-4">
+                                <span className="block text-lg font-bold mb-1">Gameplay</span>
+                                <span className="text-xs">Bottom {gameplaySettings.height}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+                  ) : (
+                    // Full Mode - Live Zoom Preview
+                    <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[400px] mx-auto">
+                      {videoUrl ? (
+                        <video
+                          src={videoUrl}
+                          className="w-full h-full object-cover"
+                          style={{
+                            transform: `scale(${facecamSettings.zoom / 100}) translate(${facecamSettings.panX * 2}px, ${facecamSettings.panY * 2}px)`,
+                            transformOrigin: 'center'
+                          }}
+                          muted
+                          loop
+                          autoPlay
+                        />
+                      ) : null}
+
+                      {/* Zoom/Pan indicator overlay */}
+                      <div className="absolute inset-0 border-4 border-green-500/70 pointer-events-none rounded">
+                        <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded font-bold">
+                          LIVE
+                        </div>
+                        <div className="absolute bottom-2 left-2 bg-black/70 text-green-300 text-xs px-2 py-1 rounded">
+                          Zoom: {facecamSettings.zoom}% | Pan: {facecamSettings.panX}, {facecamSettings.panY}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {!videoUrl && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <ZoomIn className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Upload a video</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
 
             {/* 9:16 Output Preview */}
             <Card>
               <CardHeader>
                 <CardTitle>Final Output Preview</CardTitle>
                 <CardDescription>
-                  {splitEnabled ? 'Split view with facecam and gameplay sections' : 'Full video converted to portrait (9:16) with zoom/pan'}
+                  {splitEnabled ? 'Split view with facecam and gameplay' : 'Full video in 9:16 portrait with zoom/pan'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[500px] mx-auto">
+                <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[400px] mx-auto">
                   {splitEnabled ? (
                     // Split Mode Preview
                     <>
@@ -693,8 +696,9 @@ export default function VideoClipper() {
             </Card>
           </div>
 
-          {/* Middle Column - Clipping List */}
+          {/* Right Column - Settings & Clips */}
           <div className="space-y-6">
+            {/* Clip List */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
