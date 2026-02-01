@@ -66,13 +66,13 @@ interface ProcessedVideo {
 
 export default function VideoClipper() {
   const { theme, setTheme } = useTheme()
+  const clipCounterRef = useRef(0)
+
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [videoUrl, setVideoUrl] = useState<string>('')
   const [videoPath, setVideoPath] = useState<string>('')
   const [youtubeUrl, setYoutubeUrl] = useState<string>('')
   const [clips, setClips] = useState<Clip[]>([])
-  const [currentClipId, setCurrentClipId] = useState<string | null>(null)
-  const [logoPath, setLogoPath] = useState<string>('')
   const [socketConnected, setSocketConnected] = useState(false)
   const [downloadProgress, setDownloadProgress] = useState(0)
   const [processedVideos, setProcessedVideos] = useState<ProcessedVideo[]>([])
@@ -172,7 +172,7 @@ export default function VideoClipper() {
 
   const addClip = () => {
     const newClip: Clip = {
-      id: `clip-${Date.now()}`,
+      id: `clip-${clipCounterRef.current++}`,
       name: `Clip ${clips.length + 1}`,
       startTime: '00:00:00',
       endTime: '00:00:10'
