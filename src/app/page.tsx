@@ -488,77 +488,105 @@ export default function VideoClipper() {
 
                 <Separator className="my-2" />
 
-                {/* Compact Video Preview - Not Full Screen */}
+                {/* Compact Video Preview - Portrait 9:16 */}
                 {videoUrl && (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <div className="text-xs font-medium text-muted-foreground">Video Preview</div>
+                      <div className="text-xs font-medium text-muted-foreground">Video Preview (9:16)</div>
                       <div className="text-[10px] text-muted-foreground">Source & Live View</div>
                     </div>
-                    <div className="flex gap-2 h-[200px]">
-                      {/* Original Video - Compact */}
-                      <div className="flex-1 relative bg-black rounded-lg overflow-hidden border border-border/30">
-                        <div className="absolute top-1.5 left-1.5 bg-black/70 text-white/90 text-[10px] px-1.5 py-0.5 rounded font-medium z-10">
-                          SOURCE
+                    <div className="flex gap-3 justify-center items-start">
+                      {/* Original Video - Portrait Preview */}
+                      <div className="flex flex-col items-center gap-1.5">
+                        <div className="text-[10px] text-muted-foreground font-medium">SOURCE</div>
+                        <div className="relative bg-black rounded-lg overflow-hidden border border-border/30" style={{ width: '90px', height: '160px' }}>
+                          <video
+                            ref={videoRef}
+                            src={videoUrl}
+                            className="w-full h-full object-cover"
+                            controls
+                          />
                         </div>
-                        <video
-                          ref={videoRef}
-                          src={videoUrl}
-                          className="w-full h-full object-contain"
-                          controls
-                        />
                       </div>
 
-                      {/* Live Preview - Compact */}
-                      <div className="flex-1 relative bg-black rounded-lg overflow-hidden border border-primary/30">
-                        <div className="absolute top-1.5 left-1.5 bg-primary/90 text-white text-[10px] px-1.5 py-0.5 rounded font-bold z-10">
-                          PREVIEW
-                        </div>
-                        {splitEnabled ? (
-                          <div className="flex flex-col h-full">
-                            <div className="flex-1 relative bg-gradient-to-b from-blue-900/40 to-blue-900/30 border-b border-blue-500/40 flex items-center justify-center">
-                              <div className="text-center text-white/90">
-                                <div className="text-[11px] font-semibold mb-0.5">Facecam</div>
-                                <div className="text-[9px] opacity-80">{facecamSettings.height}%</div>
+                      {/* Live Preview - Portrait 9:16 */}
+                      <div className="flex flex-col items-center gap-1.5">
+                        <div className="text-[10px] text-primary font-bold">PREVIEW</div>
+                        <div className="relative bg-black rounded-lg overflow-hidden border border-primary/30" style={{ width: '90px', height: '160px' }}>
+                          {splitEnabled ? (
+                            <>
+                              {/* Split Mode - Real-time Video Preview */}
+                              <video
+                                src={videoUrl}
+                                className="absolute top-0 left-0 w-full object-cover"
+                                style={{
+                                  height: `${facecamSettings.height}%`,
+                                  transform: `scale(${facecamSettings.zoom / 100}) translate(${facecamSettings.panX * 3}px, ${facecamSettings.panY * 3}px)`,
+                                  transformOrigin: 'center'
+                                }}
+                                muted
+                                loop
+                                autoPlay
+                              />
+                              <video
+                                src={videoUrl}
+                                className="absolute bottom-0 left-0 w-full object-cover"
+                                style={{
+                                  height: `${gameplaySettings.height}%`,
+                                  top: `${100 - gameplaySettings.height}%`,
+                                  transform: `scale(${gameplaySettings.zoom / 100}) translate(${gameplaySettings.panX * 3}px, ${gameplaySettings.panY * 3}px)`,
+                                  transformOrigin: 'center'
+                                }}
+                                muted
+                                loop
+                                autoPlay
+                              />
+                              {/* Divider line */}
+                              <div
+                                className="absolute left-0 right-0 bg-white/30"
+                                style={{ top: `${facecamSettings.height}%`, height: '1px' }}
+                              />
+                              {/* Labels */}
+                              <div className="absolute top-1 left-1.5 bg-black/70 text-blue-300 text-[8px] px-1 py-0.5 rounded font-bold">
+                                FACE
                               </div>
-                            </div>
-                            <div className="flex-1 relative bg-gradient-to-t from-green-900/40 to-green-900/30 border-t border-green-500/40 flex items-center justify-center">
-                              <div className="text-center text-white/90">
-                                <div className="text-[11px] font-semibold mb-0.5">Gameplay</div>
-                                <div className="text-[9px] opacity-80">{gameplaySettings.height}%</div>
+                              <div className="absolute bottom-1 left-1.5 bg-black/70 text-green-300 text-[8px] px-1 py-0.5 rounded font-bold">
+                                GAME
                               </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
+                            </>
+                          ) : (
+                            /* Full Mode - Zoom Preview */
                             <video
                               src={videoUrl}
-                              className="w-full h-full object-cover"
+                              className="absolute inset-0 w-full h-full object-cover"
                               style={{
-                                transform: `scale(${facecamSettings.zoom / 100}) translate(${facecamSettings.panX * 2}px, ${facecamSettings.panY * 2}px)`,
+                                transform: `scale(${facecamSettings.zoom / 100}) translate(${facecamSettings.panX * 3}px, ${facecamSettings.panY * 3}px)`,
                                 transformOrigin: 'center'
                               }}
                               muted
                               loop
                               autoPlay
                             />
-                            <div className="absolute inset-0 border-2 border-green-500/50 pointer-events-none">
-                              <div className="absolute bottom-1.5 left-1.5 bg-black/80 text-green-300 text-[9px] px-1.5 py-0.5 rounded font-mono">
+                          )}
+                          {/* Frame indicator */}
+                          {!splitEnabled && (
+                            <div className="absolute inset-0 border border-green-500/50 pointer-events-none">
+                              <div className="absolute bottom-1 left-1 bg-black/80 text-green-300 text-[8px] px-1 py-0.5 rounded font-mono">
                                 Z:{facecamSettings.zoom}% P:{facecamSettings.panX},{facecamSettings.panY}
                               </div>
                             </div>
-                          </>
-                        )}
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
 
                 {!videoUrl && (
-                  <div className="h-[200px] flex items-center justify-center bg-muted/30 rounded-lg border-2 border-dashed border-muted/40">
+                  <div className="flex flex-col items-center justify-center bg-muted/30 rounded-lg border-2 border-dashed border-muted/40 py-8">
                     <div className="text-center text-muted-foreground">
                       <Video className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                      <p className="text-xs">No video loaded</p>
+                      <p className="text-xs">Upload video for 9:16 preview</p>
                     </div>
                   </div>
                 )}
