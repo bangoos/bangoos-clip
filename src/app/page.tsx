@@ -14,15 +14,15 @@ import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { 
-  Upload, 
-  Youtube, 
-  Play, 
-  Pause, 
-  Trash2, 
-  Plus, 
-  Settings, 
+import { useTheme } from 'next-themes'
+import {
+  Upload,
+  Youtube,
+  Play,
+  Pause,
+  Trash2,
+  Plus,
+  Settings,
   Video,
   Download,
   Move,
@@ -31,9 +31,8 @@ import {
   Image as ImageIcon,
   Terminal,
   CheckCircle2,
-  AlertCircle,
-  X,
-  Eye
+  Moon,
+  Sun
 } from 'lucide-react'
 
 interface Clip {
@@ -66,6 +65,7 @@ interface ProcessedVideo {
 }
 
 export default function VideoClipper() {
+  const { theme, setTheme } = useTheme()
   const [videoFile, setVideoFile] = useState<File | null>(null)
   const [videoUrl, setVideoUrl] = useState<string>('')
   const [videoPath, setVideoPath] = useState<string>('')
@@ -77,8 +77,6 @@ export default function VideoClipper() {
   const [downloadProgress, setDownloadProgress] = useState(0)
   const [processedVideos, setProcessedVideos] = useState<ProcessedVideo[]>([])
   const [splitEnabled, setSplitEnabled] = useState<boolean>(true)
-  const [previewModalOpen, setPreviewModalOpen] = useState(false)
-  const [previewClip, setPreviewClip] = useState<Clip | null>(null)
   const [facecamSettings, setFacecamSettings] = useState<FacecamSettings>({
     height: 40,
     zoom: 100,
@@ -182,12 +180,6 @@ export default function VideoClipper() {
     setClips([...clips, newClip])
     setCurrentClipId(newClip.id)
     addLog(`Added new clip: ${newClip.name}`)
-  }
-
-  const openClipPreview = (clip: Clip) => {
-    setPreviewClip(clip)
-    setPreviewModalOpen(true)
-    addLog(`Previewing clip: ${clip.name}`)
   }
 
   const timeToSeconds = (timeStr: string): number => {
@@ -378,26 +370,30 @@ export default function VideoClipper() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-primary text-primary-foreground p-2 rounded-lg">
+              <div className="bg-gradient-to-br from-primary to-purple-600 text-primary-foreground p-2.5 rounded-xl shadow-lg">
                 <Video className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">KlipPod Manual Pro</h1>
-                <p className="text-sm text-muted-foreground">Web-Based Video Clipper</p>
+                <h1 className="text-xl font-bold tracking-tight">KlipPod Pro</h1>
+                <p className="text-xs text-muted-foreground">Video Clipper</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Badge variant={socketConnected ? "default" : "secondary"} className="gap-2">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              >
+                {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
+              <Badge variant={socketConnected ? "default" : "secondary"} className="gap-2 h-8">
                 <div className={`w-2 h-2 rounded-full ${socketConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-                {socketConnected ? 'Connected' : 'Disconnected'}
-              </Badge>
-              <Badge variant="outline" className="gap-2">
-                <Settings className="w-4 h-4" />
-                9:16 Vertical Format
+                <span className="text-xs">{socketConnected ? 'Connected' : 'Offline'}</span>
               </Badge>
             </div>
           </div>
@@ -405,930 +401,531 @@ export default function VideoClipper() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Video Previews */}
-          <div className="space-y-6">
-            {/* Input Manager */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Upload className="w-5 h-5" />
-                  Input Manager
-                </CardTitle>
-                <CardDescription>
-                  Upload local video or use YouTube URL
-                </CardDescription>
+      <main className="flex-1 container mx-auto px-3 py-4 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-6rem)]">
+          {/* Left - Video Preview Area (7 cols) */}
+          <div className="lg:col-span-7 flex flex-col gap-3 overflow-hidden">
+            {/* Input & Video */}
+            <Card className="flex-1 flex flex-col">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-sm font-semibold">Video Source</CardTitle>
+                    <CardDescription className="text-xs">Upload or enter YouTube URL</CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="flex-1 flex flex-col gap-3 overflow-hidden">
                 <Tabs defaultValue="upload" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="upload">
-                      <Upload className="w-4 h-4 mr-2" />
+                  <TabsList className="grid w-full grid-cols-2 h-8">
+                    <TabsTrigger value="upload" className="text-xs">
+                      <Upload className="w-3 h-3 mr-1.5" />
                       Upload
                     </TabsTrigger>
-                    <TabsTrigger value="youtube">
-                      <Youtube className="w-4 h-4 mr-2" />
+                    <TabsTrigger value="youtube" className="text-xs">
+                      <Youtube className="w-3 h-3 mr-1.5" />
                       YouTube
                     </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="upload" className="space-y-4 mt-4">
-                    <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/50 transition-colors cursor-pointer"
-                         onClick={() => fileInputRef.current?.click()}>
-                      <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Click to upload or drag and drop
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        .MP4, .MKV, .MOV files
-                      </p>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".mp4,.mkv,.mov"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                      />
-                    </div>
-                    {videoFile && (
-                      <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <Video className="w-4 h-4" />
-                          <span className="text-sm font-medium">{videoFile.name}</span>
+                  <TabsContent value="upload" className="space-y-3 mt-3">
+                    {videoFile ? (
+                      <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
+                        <div className="flex items-center gap-2 truncate">
+                          <Video className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-medium truncate">{videoFile.name}</span>
                         </div>
-                        <Button size="sm" variant="ghost" onClick={() => {
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => {
                           setVideoFile(null)
                           setVideoUrl('')
                           addLog('Video file cleared')
                         }}>
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </Button>
+                      </div>
+                    ) : (
+                      <div
+                        className="border-2 border-dashed border-primary/30 rounded-lg p-4 text-center hover:bg-muted/30 transition-colors cursor-pointer"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">Upload Video</p>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept=".mp4,.mkv,.mov"
+                          onChange={handleFileUpload}
+                          className="hidden"
+                        />
                       </div>
                     )}
                   </TabsContent>
 
-                  <TabsContent value="youtube" className="space-y-4 mt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="youtube">YouTube URL</Label>
-                      <Input
-                        id="youtube"
-                        placeholder="https://youtube.com/watch?v=..."
-                        value={youtubeUrl}
-                        onChange={(e) => setYoutubeUrl(e.target.value)}
-                      />
-                    </div>
+                  <TabsContent value="youtube" className="space-y-3 mt-3">
+                    <Input
+                      placeholder="https://youtube.com/watch?v=..."
+                      value={youtubeUrl}
+                      onChange={(e) => setYoutubeUrl(e.target.value)}
+                      className="text-sm"
+                    />
                     <Button
-                      className="w-full"
+                      className="w-full h-9 text-sm"
                       onClick={handleYoutubeUrl}
                       disabled={!youtubeUrl}
                     >
-                      <Youtube className="w-4 h-4 mr-2" />
-                      Download Video
+                      <Youtube className="w-3.5 h-3.5 mr-1.5" />
+                      Download
                     </Button>
                   </TabsContent>
                 </Tabs>
-              </CardContent>
-            </Card>
 
-            {/* Video & Preview Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Video Preview */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Original Video</CardTitle>
-                  <CardDescription>
-                    Source video
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {videoUrl ? (
-                    <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-                      <video
-                        ref={videoRef}
-                        src={videoUrl}
-                        className="w-full h-full object-contain"
-                        controls
-                      />
-                    </div>
-                  ) : (
-                    <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                      <div className="text-center">
-                        <Video className="w-12 h-12 mx-auto mb-2 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">
-                          No video loaded
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                <Separator className="my-2" />
 
-              {/* Real-time Zoom Preview */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <ZoomIn className="w-5 h-5" />
-                    {splitEnabled ? 'Layout Preview' : 'Live Preview'}
-                  </CardTitle>
-                  <CardDescription>
-                    {splitEnabled ? 'Split layout' : 'Zoom & pan effects'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {splitEnabled ? (
-                    // Split Mode - Layout Preview Only
-                    <Tabs defaultValue="facecam" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2 mb-4">
-                        <TabsTrigger value="facecam">
-                          Facecam
-                        </TabsTrigger>
-                        <TabsTrigger value="gameplay">
-                          Gameplay
-                        </TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="facecam" className="mt-4">
-                        <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[400px] mx-auto">
-                          <div
-                            className="absolute inset-0 bg-gradient-to-b from-blue-900/40 to-blue-900/20"
-                            style={{ height: `${facecamSettings.height}%` }}
-                          >
-                            <div className="absolute inset-0 flex items-center justify-center text-white/80">
-                              <div className="text-center p-4">
-                                <span className="block text-lg font-bold mb-1">Facecam</span>
-                                <span className="text-xs">Top {facecamSettings.height}%</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </TabsContent>
-
-                      <TabsContent value="gameplay" className="mt-4">
-                        <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[400px] mx-auto">
-                          <div
-                            className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-green-900/40 to-green-900/20"
-                            style={{ height: `${gameplaySettings.height}%` }}
-                          >
-                            <div className="absolute inset-0 flex items-center justify-center text-white/80">
-                              <div className="text-center p-4">
-                                <span className="block text-lg font-bold mb-1">Gameplay</span>
-                                <span className="text-xs">Bottom {gameplaySettings.height}%</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </TabsContent>
-                    </Tabs>
-                  ) : (
-                    // Full Mode - Live Zoom Preview
-                    <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[400px] mx-auto">
-                      {videoUrl ? (
+                {/* Video Preview - Full Height */}
+                {videoUrl && (
+                  <div className="flex-1 flex gap-3 min-h-0">
+                    {/* Original Video */}
+                    <div className="flex-1 flex flex-col gap-2">
+                      <div className="text-xs font-medium text-muted-foreground">Source</div>
+                      <div className="flex-1 relative bg-black rounded-lg overflow-hidden">
                         <video
+                          ref={videoRef}
                           src={videoUrl}
-                          className="w-full h-full object-cover"
-                          style={{
-                            transform: `scale(${facecamSettings.zoom / 100}) translate(${facecamSettings.panX * 2}px, ${facecamSettings.panY * 2}px)`,
-                            transformOrigin: 'center'
-                          }}
-                          muted
-                          loop
-                          autoPlay
+                          className="w-full h-full object-contain"
+                          controls
                         />
-                      ) : null}
-
-                      {/* Zoom/Pan indicator overlay */}
-                      <div className="absolute inset-0 border-4 border-green-500/70 pointer-events-none rounded">
-                        <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded font-bold">
-                          LIVE
-                        </div>
-                        <div className="absolute bottom-2 left-2 bg-black/70 text-green-300 text-xs px-2 py-1 rounded">
-                          Zoom: {facecamSettings.zoom}% | Pan: {facecamSettings.panX}, {facecamSettings.panY}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {!videoUrl && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <ZoomIn className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">Upload a video</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* 9:16 Output Preview */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Final Output Preview</CardTitle>
-                <CardDescription>
-                  {splitEnabled ? 'Split view with facecam and gameplay' : 'Full video in 9:16 portrait with zoom/pan'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[400px] mx-auto">
-                  {splitEnabled ? (
-                    // Split Mode Preview
-                    <>
-                    {/* Facecam Area */}
-                    <div
-                      className="absolute top-0 left-0 right-0 bg-gradient-to-b from-blue-900/40 to-blue-900/20 border-b-2 border-blue-500/60"
-                      style={{ height: `${facecamSettings.height}%` }}
-                    >
-                      <div className="absolute inset-0 flex items-center justify-center text-white/80">
-                        <div className="text-center p-4">
-                          <span className="block text-lg font-bold mb-1">Facecam</span>
-                          <span className="text-xs">Layout preview only</span>
-                        </div>
                       </div>
                     </div>
 
-                    {/* Gameplay Area */}
-                    <div
-                      className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-green-900/40 to-green-900/20 border-t-2 border-green-500/60"
-                      style={{ height: `${gameplaySettings.height}%` }}
-                    >
-                      <div className="absolute inset-0 flex items-center justify-center text-white/80">
-                        <div className="text-center p-4">
-                          <span className="block text-lg font-bold mb-1">Gameplay</span>
-                          <span className="text-xs">Layout preview only</span>
-                        </div>
-                      </div>
-                    </div>
-                    </>
-                  ) : (
-                    // Full Mode Preview with Zoom/Pan
-                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900/40 to-gray-900/20">
-                      <div className="text-center p-4 text-white/80">
-                        <span className="block text-lg font-bold mb-2">Full Video Mode</span>
-                        <div className="flex flex-col gap-2 text-xs">
-                          <div className="bg-black/50 px-3 py-1.5 rounded">
-                            <span className="text-green-400">Zoom:</span> {facecamSettings.zoom}%
+                    {/* Live Preview */}
+                    <div className="flex-1 flex flex-col gap-2">
+                      <div className="text-xs font-medium text-muted-foreground">Preview {splitEnabled ? '(Layout)' : '(Live)'}</div>
+                      <div className="flex-1 relative bg-black rounded-lg overflow-hidden">
+                        {splitEnabled ? (
+                          <div className="flex flex-col h-full gap-2">
+                            <div className="flex-1 relative bg-gradient-to-b from-blue-900/40 to-blue-900/30 border-b border-blue-500/40 rounded-t-lg flex items-center justify-center">
+                              <div className="text-center text-white/90">
+                                <div className="text-xs font-semibold mb-1">Facecam</div>
+                                <div className="text-[10px] opacity-80">{facecamSettings.height}%</div>
+                              </div>
+                            </div>
+                            <div className="flex-1 relative bg-gradient-to-t from-green-900/40 to-green-900/30 border-t border-green-500/40 rounded-b-lg flex items-center justify-center">
+                              <div className="text-center text-white/90">
+                                <div className="text-xs font-semibold mb-1">Gameplay</div>
+                                <div className="text-[10px] opacity-80">{gameplaySettings.height}%</div>
+                              </div>
+                            </div>
                           </div>
-                          <div className="bg-black/50 px-3 py-1.5 rounded">
-                            <span className="text-green-400">Pan X:</span> {facecamSettings.panX}
-                          </div>
-                          <div className="bg-black/50 px-3 py-1.5 rounded">
-                            <span className="text-green-400">Pan Y:</span> {facecamSettings.panY}
-                          </div>
-                        </div>
+                        ) : (
+                          <>
+                            <video
+                              src={videoUrl}
+                              className="w-full h-full object-cover"
+                              style={{
+                                transform: `scale(${facecamSettings.zoom / 100}) translate(${facecamSettings.panX * 2}px, ${facecamSettings.panY * 2}px)`,
+                                transformOrigin: 'center'
+                              }}
+                              muted
+                              loop
+                              autoPlay
+                            />
+                            <div className="absolute inset-0 border-2 border-green-500/50 pointer-events-none rounded">
+                              <div className="absolute top-1.5 left-1.5 bg-green-600/90 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
+                                LIVE
+                              </div>
+                              <div className="absolute bottom-1.5 left-1.5 bg-black/70 text-green-300 text-[10px] px-1.5 py-0.5 rounded">
+                                Z:{facecamSettings.zoom}% P:{facecamSettings.panX},{facecamSettings.panY}
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {/* Watermark Preview */}
-                  {watermark && (
-                    <div className="absolute bottom-4 right-4 text-white/90 text-xs font-bold bg-black/60 px-3 py-1.5 rounded backdrop-blur-sm">
-                      {watermark}
+                {!videoUrl && (
+                  <div className="flex-1 flex items-center justify-center bg-muted/30 rounded-lg border-2 border-dashed border-muted/40">
+                    <div className="text-center text-muted-foreground">
+                      <Video className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                      <p className="text-sm">No video loaded</p>
                     </div>
-                  )}
-
-                  {/* Logo Preview */}
-                  {logoFile && (
-                    <div className="absolute bottom-4 left-4 bg-black/60 p-2 rounded backdrop-blur-sm">
-                      <ImageIcon className="w-6 h-6 text-white/90" />
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Right Column - Settings & Clips */}
-          <div className="space-y-6">
-            {/* Clip List */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Plus className="w-5 h-5" />
-                    Clipping List
-                  </span>
-                  <Badge variant="secondary">{clips.length} clips</Badge>
-                </CardTitle>
-                <CardDescription>
-                  Manage your clips batch processing
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button 
-                  className="w-full" 
-                  onClick={addClip}
-                  disabled={processing}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add New Clip
-                </Button>
-
-                {clips.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Plus className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No clips added yet</p>
-                    <p className="text-xs">Click "Add New Clip" to start</p>
+          {/* Right - Controls Panel (5 cols) */}
+          <div className="lg:col-span-5 flex flex-col gap-3 overflow-hidden">
+            <ScrollArea className="flex-1 pr-2">
+              <div className="space-y-3">
+                {/* Mode Toggle */}
+                <Card className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Settings className="w-4 h-4 text-primary" />
+                      <div>
+                        <div className="text-sm font-semibold">Split Mode</div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {splitEnabled ? 'Facecam + Gameplay' : 'Full Video'}
+                        </div>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={splitEnabled}
+                      onCheckedChange={setSplitEnabled}
+                      className="scale-90"
+                    />
                   </div>
+                </Card>
+
+                {/* Controls */}
+                {splitEnabled ? (
+                  // Split Mode Controls
+                  <Card className="p-4">
+                    <div className="space-y-4">
+                      <div className="text-xs font-semibold text-blue-500 mb-2">Facecam (Top)</div>
+                      <div className="space-y-3">
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-[11px] text-muted-foreground">
+                            <span>Height</span>
+                            <span className="font-mono text-primary">{facecamSettings.height}%</span>
+                          </div>
+                          <Slider
+                            value={[facecamSettings.height]}
+                            onValueChange={([v]) => setFacecamSettings(prev => ({ ...prev, height: v }))}
+                            min={20}
+                            max={50}
+                            step={1}
+                            className="h-5"
+                          />
+                        </div>
+                      </div>
+                      <Separator className="my-3" />
+                      <div className="text-xs font-semibold text-green-500 mb-2">Gameplay (Bottom)</div>
+                      <div className="space-y-3">
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-[11px] text-muted-foreground">
+                            <span>Height</span>
+                            <span className="font-mono text-primary">{gameplaySettings.height}%</span>
+                          </div>
+                          <Slider
+                            value={[gameplaySettings.height]}
+                            onValueChange={([v]) => setGameplaySettings(prev => ({ ...prev, height: v }))}
+                            min={40}
+                            max={80}
+                            step={1}
+                            className="h-5"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
                 ) : (
-                  <ScrollArea className="h-[500px] pr-4">
+                  // Full Mode Controls
+                  <Card className="p-4">
                     <div className="space-y-3">
-                      {clips.map((clip, index) => (
-                        <Card 
+                      <div className="text-xs font-semibold text-primary mb-3">Zoom & Pan</div>
+                      <div className="space-y-3">
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-[11px] text-muted-foreground">
+                            <span>Zoom</span>
+                            <span className="font-mono text-primary">{facecamSettings.zoom}%</span>
+                          </div>
+                          <Slider
+                            value={[facecamSettings.zoom]}
+                            onValueChange={([v]) => setFacecamSettings(prev => ({ ...prev, zoom: v }))}
+                            min={50}
+                            max={200}
+                            step={5}
+                            className="h-5"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between text-[11px] text-muted-foreground">
+                              <span>Pan X</span>
+                              <span className="font-mono text-primary">{facecamSettings.panX}</span>
+                            </div>
+                            <Slider
+                              value={[facecamSettings.panX]}
+                              onValueChange={([v]) => setFacecamSettings(prev => ({ ...prev, panX: v }))}
+                              min={-100}
+                              max={100}
+                              step={5}
+                              className="h-5"
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between text-[11px] text-muted-foreground">
+                              <span>Pan Y</span>
+                              <span className="font-mono text-primary">{facecamSettings.panY}</span>
+                            </div>
+                            <Slider
+                              value={[facecamSettings.panY]}
+                              onValueChange={([v]) => setFacecamSettings(prev => ({ ...prev, panY: v }))}
+                              min={-100}
+                              max={100}
+                              step={5}
+                              className="h-5"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                )}
+
+                {/* Clips */}
+                <Card className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Plus className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-semibold">Clips</span>
+                    </div>
+                    <Badge variant="secondary" className="text-[10px] h-5">{clips.length}</Badge>
+                  </div>
+                  <Button
+                    className="w-full h-8 text-xs mb-3"
+                    onClick={addClip}
+                    disabled={processing}
+                  >
+                    <Plus className="w-3 h-3 mr-1.5" />
+                    Add Clip
+                  </Button>
+                  {clips.length === 0 ? (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <Plus className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                      <p className="text-xs">No clips</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2">
+                      {clips.map((clip) => (
+                        <div
                           key={clip.id}
-                          className={`cursor-pointer transition-all ${
-                            currentClipId === clip.id 
-                              ? 'ring-2 ring-primary' 
-                              : 'hover:bg-muted/50'
+                          className={`p-2 rounded-lg border transition-all cursor-pointer ${
+                            currentClipId === clip.id
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border hover:bg-muted/50'
                           }`}
                           onClick={() => setCurrentClipId(clip.id)}
                         >
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex-1 space-y-2">
-                                <Input
-                                  value={clip.name}
-                                  onChange={(e) => updateClip(clip.id, 'name', e.target.value)}
-                                  className="font-semibold"
-                                  placeholder="Clip name"
-                                />
-                              </div>
-                              <div className="flex gap-1">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    openClipPreview(clip)
-                                  }}
-                                  disabled={processing}
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    removeClip(clip.id)
-                                  }}
-                                  disabled={processing}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
+                          <div className="flex items-center justify-between mb-2">
+                            <Input
+                              value={clip.name}
+                              onChange={(e) => updateClip(clip.id, 'name', e.target.value)}
+                              className="text-xs font-semibold h-6 px-2 py-0"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={(e) => { e.stopPropagation(); removeClip(clip.id) }}
+                                disabled={processing}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
                             </div>
-                            
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className="space-y-1">
-                                <Label className="text-xs">Start Time</Label>
-                                <Input
-                                  type="text"
-                                  value={clip.startTime}
-                                  onChange={(e) => updateClip(clip.id, 'startTime', e.target.value)}
-                                  placeholder="HH:MM:SS"
-                                  className="text-sm font-mono"
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <Label className="text-xs">End Time</Label>
-                                <Input
-                                  type="text"
-                                  value={clip.endTime}
-                                  onChange={(e) => updateClip(clip.id, 'endTime', e.target.value)}
-                                  placeholder="HH:MM:SS"
-                                  className="text-sm font-mono"
-                                />
-                              </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <div className="text-[10px] text-muted-foreground mb-1">Start</div>
+                              <Input
+                                type="text"
+                                value={clip.startTime}
+                                onChange={(e) => updateClip(clip.id, 'startTime', e.target.value)}
+                                placeholder="00:00:00"
+                                className="text-[11px] font-mono h-7 px-2 py-0"
+                                onClick={(e) => e.stopPropagation()}
+                              />
                             </div>
-
-                            {completedClips.includes(clip.id) && (
-                              <div className="flex items-center gap-2 mt-3 text-sm text-green-600">
-                                <CheckCircle2 className="w-4 h-4" />
-                                <span>Completed</span>
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
+                            <div>
+                              <div className="text-[10px] text-muted-foreground mb-1">End</div>
+                              <Input
+                                type="text"
+                                value={clip.endTime}
+                                onChange={(e) => updateClip(clip.id, 'endTime', e.target.value)}
+                                placeholder="00:00:10"
+                                className="text-[11px] font-mono h-7 px-2 py-0"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          </div>
+                          {completedClips.includes(clip.id) && (
+                            <div className="flex items-center gap-1.5 mt-2 text-[10px] text-green-500">
+                              <CheckCircle2 className="w-3 h-3" />
+                              <span>Completed</span>
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
-                  </ScrollArea>
-                )}
-
-                {clips.length > 0 && (
-                  <div className="space-y-3 pt-4 border-t">
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Progress</span>
-                        <span className="font-medium">{progress.toFixed(0)}%</span>
-                      </div>
-                      <Progress value={progress} />
-                    </div>
-                    <Button 
-                      className="w-full" 
-                      onClick={processAllClips}
-                      disabled={processing}
-                    >
-                      {processing ? (
-                        <>
-                          <Pause className="w-4 h-4 mr-2" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <Play className="w-4 h-4 mr-2" />
-                          Process All Clips
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Terminal Log */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Terminal className="w-5 h-5" />
-                  Terminal Log
-                </CardTitle>
-                <CardDescription>
-                  Real-time FFMPEG progress
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[250px] bg-black text-green-400 p-3 rounded-lg font-mono text-xs">
-                  {logs.length === 0 ? (
-                    <p className="text-gray-500">No logs yet...</p>
-                  ) : (
-                    logs.map((log, index) => (
-                      <p key={index} className="mb-1">{log}</p>
-                    ))
                   )}
-                </ScrollArea>
-              </CardContent>
-            </Card>
+                  {clips.length > 0 && (
+                    <>
+                      <Separator className="my-3" />
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-[11px] text-muted-foreground">
+                          <span>Progress</span>
+                          <span className="font-mono">{progress.toFixed(0)}%</span>
+                        </div>
+                        <Progress value={progress} className="h-1.5" />
+                        <Button
+                          className="w-full h-8 text-xs"
+                          onClick={processAllClips}
+                          disabled={processing}
+                        >
+                          {processing ? (
+                            <>
+                              <Pause className="w-3 h-3 mr-1.5" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <Play className="w-3 h-3 mr-1.5" />
+                              Process Clips
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </Card>
 
-            {/* Processed Videos */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5" />
-                    Processed Videos
-                  </span>
-                  <Badge variant="secondary">{processedVideos.length} videos</Badge>
-                </CardTitle>
-                <CardDescription>
-                  Download your processed clips
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={fetchProcessedVideos}
-                  className="w-full"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Refresh List
-                </Button>
-
-                {processedVideos.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <CheckCircle2 className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No processed videos yet</p>
-                    <p className="text-xs">Process some clips to see results here</p>
+                {/* Watermark */}
+                <Card className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Type className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-semibold">Branding</span>
                   </div>
-                ) : (
-                  <ScrollArea className="h-[250px] pr-4">
-                    <div className="space-y-3">
-                      {processedVideos.map((video, index) => (
-                        <Card key={index} className="p-4 hover:bg-muted/50 transition-colors">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Video className="w-4 h-4 text-green-600" />
-                                <span className="text-sm font-semibold truncate">
-                                  {video.filename}
-                                </span>
-                              </div>
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                  <span>Size: {formatFileSize(video.size)}</span>
-                                  <span>
-                                    Created: {new Date(video.created).toLocaleDateString()}
-                                  </span>
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  {new Date(video.modified).toLocaleString()}
-                                </div>
-                              </div>
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px]">Watermark Text</Label>
+                      <Textarea
+                        placeholder="Enter watermark..."
+                        value={watermark}
+                        onChange={(e) => setWatermark(e.target.value)}
+                        rows={2}
+                        className="text-xs resize-none"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px]">Logo</Label>
+                      <div
+                        className="border-2 border-dashed rounded-lg p-3 text-center hover:bg-muted/30 transition-colors cursor-pointer"
+                        onClick={() => logoInputRef.current?.click()}
+                      >
+                        {logoFile ? (
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5">
+                              <ImageIcon className="w-3.5 h-3.5 text-primary" />
+                              <span className="text-xs truncate">{logoFile.name}</span>
                             </div>
-                            <Button 
-                              size="sm" 
-                              onClick={() => handleDownload(video.filename)}
-                              className="shrink-0"
-                            >
-                              <Download className="w-4 h-4" />
+                            <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setLogoFile(null)}>
+                              <Trash2 className="w-3 h-3" />
                             </Button>
                           </div>
-                        </Card>
+                        ) : (
+                          <>
+                            <ImageIcon className="w-6 h-6 mx-auto mb-1.5 opacity-40" />
+                            <p className="text-xs text-muted-foreground">Upload Logo</p>
+                          </>
+                        )}
+                        <input
+                          ref={logoInputRef}
+                          type="file"
+                          accept=".png"
+                          onChange={handleLogoUpload}
+                          className="hidden"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Processed Videos */}
+                <Card className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      <span className="text-sm font-semibold">Download</span>
+                    </div>
+                    <Badge variant="secondary" className="text-[10px] h-5">{processedVideos.length}</Badge>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={fetchProcessedVideos}
+                    className="w-full h-7 text-xs mb-3"
+                  >
+                    <Download className="w-3 h-3 mr-1.5" />
+                    Refresh
+                  </Button>
+                  {processedVideos.length === 0 ? (
+                    <div className="text-center py-4 text-muted-foreground">
+                      <CheckCircle2 className="w-6 h-6 mx-auto mb-1.5 opacity-40" />
+                      <p className="text-xs">No videos</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5 max-h-[180px] overflow-y-auto pr-2">
+                      {processedVideos.map((video, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-2 rounded-lg border hover:bg-muted/30 transition-colors"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-semibold truncate mb-0.5">{video.filename}</div>
+                            <div className="text-[10px] text-muted-foreground">
+                              {formatFileSize(video.size)}
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => handleDownload(video.filename)}
+                            className="shrink-0 h-6 w-6 p-0"
+                          >
+                            <Download className="w-3 h-3" />
+                          </Button>
+                        </div>
                       ))}
                     </div>
-                  </ScrollArea>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column - Settings */}
-          <div className="space-y-6">
-            {/* Gamer Split Mode */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="w-5 h-5" />
-                  Gamer Split Mode
-                </CardTitle>
-                <CardDescription>
-                  Configure facecam and gameplay areas
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Split Mode Toggle */}
-                <div className="flex items-center justify-between pb-4 border-b">
-                  <div className="flex items-center gap-2">
-                    <Settings className="w-4 h-4 text-primary" />
-                    <Label htmlFor="split-toggle" className="cursor-pointer">
-                      Enable Split View (Facecam + Gameplay)
-                    </Label>
-                  </div>
-                  <Switch
-                    id="split-toggle"
-                    checked={splitEnabled}
-                    onCheckedChange={setSplitEnabled}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {splitEnabled
-                    ? "Split video into facecam (top) and gameplay (bottom) sections. Zoom controls are for layout preview only."
-                    : "Full video mode with live zoom/pan editing. Video will be converted to portrait (9:16)."
-                  }
-                </p>
-
-                {/* Zoom/Pan Settings - Always visible but behavior changes based on mode */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 pb-2 border-b">
-                    <Video className="w-4 h-4 text-primary" />
-                    <h3 className="font-semibold">
-                      {splitEnabled ? 'Split Layout Preview' : 'Zoom & Pan Controls'}
-                    </h3>
-                  </div>
-
-                  {splitEnabled ? (
-                    // Split Mode - Show Facecam and Gameplay sections for layout preview
-                    <>
-                    <div className="space-y-4">
-                    <div className="flex items-center gap-2 pb-2 border-b border-blue-200 dark:border-blue-900">
-                      <Video className="w-3 h-3 text-blue-500" />
-                      <h4 className="text-sm font-semibold text-blue-600 dark:text-blue-400">Facecam (Top)</h4>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <Label className="text-sm">Height</Label>
-                          <span className="text-sm font-mono">{facecamSettings.height}%</span>
-                        </div>
-                        <Slider
-                          value={[facecamSettings.height]}
-                          onValueChange={([value]) =>
-                            setFacecamSettings(prev => ({ ...prev, height: value }))
-                          }
-                          min={20}
-                          max={50}
-                          step={1}
-                        />
-                      </div>
-                    </div>
-                    </div>
-
-                    <Separator />
-
-                    <div className="space-y-4">
-                    <div className="flex items-center gap-2 pb-2 border-b border-green-200 dark:border-green-900">
-                      <Video className="w-3 h-3 text-green-500" />
-                      <h4 className="text-sm font-semibold text-green-600 dark:text-green-400">Gameplay (Bottom)</h4>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <Label className="text-sm">Height</Label>
-                          <span className="text-sm font-mono">{gameplaySettings.height}%</span>
-                        </div>
-                        <Slider
-                          value={[gameplaySettings.height]}
-                          onValueChange={([value]) =>
-                            setGameplaySettings(prev => ({ ...prev, height: value }))
-                          }
-                          min={40}
-                          max={80}
-                          step={1}
-                        />
-                      </div>
-                    </div>
-                    </div>
-                    </>
-                  ) : (
-                    // Full Mode - Live Zoom/Pan Controls
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <Label className="text-sm flex items-center gap-1">
-                            <ZoomIn className="w-3 h-3" />
-                            Zoom
-                          </Label>
-                          <span className="text-sm font-mono">{facecamSettings.zoom}%</span>
-                        </div>
-                        <Slider
-                          value={[facecamSettings.zoom]}
-                          onValueChange={([value]) =>
-                            setFacecamSettings(prev => ({ ...prev, zoom: value }))
-                          }
-                          min={50}
-                          max={200}
-                          step={5}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <Label className="text-sm flex items-center gap-1">
-                            <Move className="w-3 h-3" />
-                            Pan X
-                          </Label>
-                          <span className="text-sm font-mono">{facecamSettings.panX}</span>
-                        </div>
-                        <Slider
-                          value={[facecamSettings.panX]}
-                          onValueChange={([value]) =>
-                            setFacecamSettings(prev => ({ ...prev, panX: value }))
-                          }
-                          min={-100}
-                          max={100}
-                          step={5}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <Label className="text-sm flex items-center gap-1">
-                            <Move className="w-3 h-3" />
-                            Pan Y
-                          </Label>
-                          <span className="text-sm font-mono">{facecamSettings.panY}</span>
-                        </div>
-                        <Slider
-                          value={[facecamSettings.panY]}
-                          onValueChange={([value]) =>
-                            setFacecamSettings(prev => ({ ...prev, panY: value }))
-                          }
-                          min={-100}
-                          max={100}
-                          step={5}
-                        />
-                      </div>
-                    </div>
                   )}
-                </div>
-              </CardContent>
-            </Card>
+                </Card>
 
-            {/* Visual Branding */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Type className="w-5 h-5" />
-                  Visual Branding
-                </CardTitle>
-                <CardDescription>
-                  Add watermarks and logo overlays
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="watermark">Text Watermark</Label>
-                  <Textarea
-                    id="watermark"
-                    placeholder="Enter watermark text..."
-                    value={watermark}
-                    onChange={(e) => setWatermark(e.target.value)}
-                    rows={2}
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <Label>Logo Overlay</Label>
-                  <div 
-                    className="border-2 border-dashed rounded-lg p-4 text-center hover:bg-muted/50 transition-colors cursor-pointer"
-                    onClick={() => logoInputRef.current?.click()}
-                  >
-                    <ImageIcon className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      Click to upload logo
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      .PNG files only (transparent recommended)
-                    </p>
-                    <input
-                      ref={logoInputRef}
-                      type="file"
-                      accept=".png"
-                      onChange={handleLogoUpload}
-                      className="hidden"
-                    />
+                {/* Logs */}
+                <Card className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Terminal className="w-4 h-4 text-amber-500" />
+                    <span className="text-sm font-semibold">Logs</span>
                   </div>
-                  {logoFile && (
-                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <ImageIcon className="w-4 h-4" />
-                        <span className="text-sm font-medium">{logoFile.name}</span>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => {
-                          setLogoFile(null)
-                          addLog('Logo file cleared')
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="bg-black/90 rounded-lg p-3 max-h-[150px] overflow-y-auto font-mono text-[10px] text-green-400">
+                    {logs.length === 0 ? (
+                      <p className="text-gray-600">No logs...</p>
+                    ) : (
+                      logs.map((log, index) => (
+                        <p key={index} className="mb-0.5 last:mb-0">{log}</p>
+                      ))
+                    )}
+                  </div>
+                </Card>
+              </div>
+            </ScrollArea>
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t bg-card mt-auto">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <p>KlipPod Manual Pro - Web Edition</p>
-            <div className="flex items-center gap-4">
-              <span>Output: 1080x1920 (9:16)</span>
-              <Separator orientation="vertical" className="h-4" />
-              <span>Format: MP4</span>
-            </div>
+      <footer className="border-t bg-card/50 backdrop-blur-sm mt-auto">
+        <div className="container mx-auto px-3 py-2">
+          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+            <span>KlipPod Pro • 1080x1920 • MP4</span>
+            <span className="text-xs">v1.0</span>
           </div>
         </div>
       </footer>
-
-      {/* Clip Preview Dialog */}
-      <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Video className="w-5 h-5" />
-              Clip Preview: {previewClip?.name}
-            </DialogTitle>
-            <DialogDescription>
-              {previewClip?.startTime} to {previewClip?.endTime}
-            </DialogDescription>
-          </DialogHeader>
-
-          {previewClip && videoUrl && (
-            <div className="space-y-4">
-              {/* Full Video Preview */}
-              <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-                <video
-                  src={videoUrl}
-                  className="w-full h-full object-contain"
-                  controls
-                  autoPlay
-                  muted
-                />
-              </div>
-
-              {/* Preview Settings Info */}
-              <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-sm">Clip Info</h4>
-                  <div className="text-xs space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Name:</span>
-                      <span className="font-medium">{previewClip.name}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Start:</span>
-                      <span className="font-mono">{previewClip.startTime}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">End:</span>
-                      <span className="font-mono">{previewClip.endTime}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Duration:</span>
-                      <span className="font-mono">{(timeToSeconds(previewClip.endTime) - timeToSeconds(previewClip.startTime)).toFixed(1)}s</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-sm">Split Mode</h4>
-                  <div className="text-xs space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Mode:</span>
-                      <span className="font-medium">{splitEnabled ? "Enabled (Facecam + Gameplay)" : "Disabled (Full Video)"}</span>
-                    </div>
-                    {splitEnabled && (
-                      <>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Facecam Height:</span>
-                          <span className="font-mono">{facecamSettings.height}%</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Gameplay Height:</span>
-                          <span className="font-mono">{gameplaySettings.height}%</span>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Output Preview */}
-              <div className="space-y-2">
-                <h4 className="font-semibold text-sm mb-2">9:16 Output Preview</h4>
-                <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[400px] mx-auto">
-                  {splitEnabled ? (
-                    <>
-                      {/* Split View - Layout Preview Only */}
-                      <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-blue-900/40 to-blue-900/20 border-b-2 border-blue-500/60" style={{ height: `${facecamSettings.height}%` }}>
-                        <div className="absolute inset-0 flex items-center justify-center text-white/80">
-                          <div className="text-center p-4">
-                            <span className="block text-lg font-bold mb-1">Facecam</span>
-                            <span className="text-xs">Layout preview (top {facecamSettings.height}%)</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-green-900/40 to-green-900/20 border-t-2 border-green-500/60" style={{ height: `${gameplaySettings.height}%` }}>
-                        <div className="absolute inset-0 flex items-center justify-center text-white/80">
-                          <div className="text-center p-4">
-                            <span className="block text-lg font-bold mb-1">Gameplay</span>
-                            <span className="text-xs">Layout preview (bottom {gameplaySettings.height}%)</span>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      {/* Full View - With Zoom/Pan */}
-                      <div className="absolute inset-0 flex items-center justify-center text-white/80 bg-gradient-to-br from-gray-900/40 to-gray-900/20">
-                        <div className="text-center p-4">
-                          <span className="block text-lg font-bold mb-2">Full Video</span>
-                          <div className="flex flex-col gap-2 justify-center text-xs">
-                            <div className="bg-black/50 px-3 py-1.5 rounded">
-                              <span className="text-green-400">Zoom:</span> {facecamSettings.zoom}%
-                            </div>
-                            <div className="bg-black/50 px-3 py-1.5 rounded">
-                              <span className="text-green-400">Pan X:</span> {facecamSettings.panX}
-                            </div>
-                            <div className="bg-black/50 px-3 py-1.5 rounded">
-                              <span className="text-green-400">Pan Y:</span> {facecamSettings.panY}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {/* Watermark Preview */}
-                  {watermark && (
-                    <div className="absolute bottom-4 right-4 text-white/90 text-xs font-bold bg-black/60 px-3 py-1.5 rounded backdrop-blur-sm">
-                      {watermark}
-                    </div>
-                  )}
-
-                  {/* Logo Preview */}
-                  {logoFile && (
-                    <div className="absolute bottom-4 left-4 bg-black/60 p-2 rounded backdrop-blur-sm">
-                      <ImageIcon className="w-6 h-6 text-white/90" />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
