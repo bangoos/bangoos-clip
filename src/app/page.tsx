@@ -561,12 +561,12 @@ export default function VideoClipper() {
             <ScrollArea className="flex-1 pr-2">
               <div className="space-y-3">
                 {/* Mode Toggle */}
-                <Card className="p-4">
+                <Card className="p-4 transition-all hover:border-primary/50">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Settings className="w-4 h-4 text-primary" />
+                      <Settings className="w-4 h-4 text-primary transition-transform hover:scale-110" />
                       <div>
-                        <div className="text-sm font-semibold">Split Mode</div>
+                        <div className="text-sm font-semibold transition-colors">Split Mode</div>
                         <div className="text-[10px] text-muted-foreground">
                           {splitEnabled ? 'Facecam + Gameplay' : 'Full Video'}
                         </div>
@@ -575,7 +575,7 @@ export default function VideoClipper() {
                     <Switch
                       checked={splitEnabled}
                       onCheckedChange={setSplitEnabled}
-                      className="scale-90"
+                      className="scale-90 transition-all hover:scale-95"
                     />
                   </div>
                 </Card>
@@ -678,16 +678,16 @@ export default function VideoClipper() {
                 )}
 
                 {/* Clips */}
-                <Card className="p-4">
+                <Card className="p-4 transition-all hover:border-primary/30">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <Plus className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-semibold">Clips</span>
+                      <Plus className="w-4 h-4 text-primary transition-transform hover:scale-110" />
+                      <span className="text-sm font-semibold transition-colors">Clips</span>
                     </div>
-                    <Badge variant="secondary" className="text-[10px] h-5">{clips.length}</Badge>
+                    <Badge variant="secondary" className="text-[10px] h-5 transition-all">{clips.length}</Badge>
                   </div>
                   <Button
-                    className="w-full h-8 text-xs mb-3"
+                    className="w-full h-8 text-xs mb-3 transition-all hover:scale-105"
                     onClick={addClip}
                     disabled={processing}
                   >
