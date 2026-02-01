@@ -39,7 +39,8 @@ async function processVideo(
   gameplaySettings: any,
   watermark: string,
   logoPath?: string,
-  socket?: any
+  socket?: any,
+  splitEnabled: boolean = true
 ) {
   const results: string[] = []
 
@@ -48,7 +49,7 @@ async function processVideo(
     const outputPath = path.join(OUTPUT_DIR, `${clip.name.replace(/\s+/g, '_')}.mp4`)
 
     try {
-      await processClip(videoPath, clip, facecamSettings, gameplaySettings, watermark, logoPath, outputPath, socket, i, clips.length)
+      await processClip(videoPath, clip, facecamSettings, gameplaySettings, watermark, logoPath, outputPath, socket, i, clips.length, splitEnabled)
       results.push(outputPath)
       
       if (socket) {
@@ -89,70 +90,73 @@ async function processClip(
   outputPath: string,
   socket: any,
   clipIndex: number,
-  totalClips: number
+  totalClips: number,
+  splitEnabled: boolean = true
 ) {
   return new Promise((resolve, reject) => {
     const outputWidth = 1080
     const outputHeight = 1920
     
-    const facecamHeight = Math.floor((facecamSettings.height / 100) * outputHeight)
-    const gameplayHeight = Math.floor((gameplaySettings.height / 100) * outputHeight)
-    
-    // Calculate crop parameters - use source video dimensions as base
-    const facecamZoom = Math.max(0.5, Math.min(facecamSettings.zoom / 100, 2))
-    const gameplayZoom = Math.max(0.5, Math.min(gameplaySettings.zoom / 100, 2))
-    
     // Build complex FFMPEG filter
     let filterComplex = []
     
-    // First scale the video to output width, maintain aspect ratio
-    filterComplex.push(`[0:v]scale=${outputWidth}:-2,pad=${outputWidth}:${outputHeight}:(ow-iw)/2:(oh-ih)/2[v_full]`)
-    
-    // Now split the scaled video
-    filterComplex.push('[v_full]split=2[facecam_src][gameplay_src]')
-    
-    // Facecam processing - crop from the facecam portion of the scaled video
-    const facecamCropWidth = Math.floor(outputWidth / facecamZoom)
-    const facecamCropHeight = Math.floor(facecamHeight / facecamZoom)
-    // Calculate crop position based on pan settings
-    const facecamX = Math.floor((outputWidth - facecamCropWidth) / 2 + facecamSettings.panX * 5)
-    const facecamY = Math.floor((facecamHeight - facecamCropHeight) / 2 + facecamSettings.panY * 5)
-    
-    // Ensure crop dimensions are valid
-    const validFacecamWidth = Math.max(1, Math.min(facecamCropWidth, outputWidth))
-    const validFacecamHeight = Math.max(1, Math.min(facecamCropHeight, facecamHeight))
-    const validFacecamX = Math.max(0, Math.min(facecamX, outputWidth - validFacecamWidth))
-    const validFacecamY = Math.max(0, Math.min(facecamY, facecamHeight - validFacecamHeight))
-    
-    filterComplex.push(
-      `[facecam_src]` +
-      `crop=${validFacecamWidth}:${validFacecamHeight}:${validFacecamX}:${validFacecamY},` +
-      `scale=${outputWidth}:${facecamHeight},` +
-      `setsar=1:1[facecam]`
-    )
-    
-    // Gameplay processing - crop from the gameplay portion
-    const gameplayCropWidth = Math.floor(outputWidth / gameplayZoom)
-    const gameplayCropHeight = Math.floor(gameplayHeight / gameplayZoom)
-    // Calculate crop position based on pan settings (offset from top of gameplay area)
-    const gameplayX = Math.floor((outputWidth - gameplayCropWidth) / 2 + gameplaySettings.panX * 5)
-    const gameplayY = Math.floor((facecamHeight - gameplayCropHeight) / 2 + gameplaySettings.panY * 5)
-    
-    // Ensure crop dimensions are valid
-    const validGameplayWidth = Math.max(1, Math.min(gameplayCropWidth, outputWidth))
-    const validGameplayHeight = Math.max(1, Math.min(gameplayCropHeight, outputHeight))
-    const validGameplayX = Math.max(0, Math.min(gameplayX, outputWidth - validGameplayWidth))
-    const validGameplayY = Math.max(0, Math.min(gameplayY, outputHeight - validGameplayHeight))
-    
-    filterComplex.push(
-      `[gameplay_src]` +
-      `crop=${validGameplayWidth}:${validGameplayHeight}:${validGameplayX}:${validGameplayY},` +
-      `scale=${outputWidth}:${gameplayHeight},` +
-      `setsar=1:1[gameplay]`
-    )
-    
-    // Stack facecam and gameplay
-    filterComplex.push(`[facecam][gameplay]vstack[video_out]`)
+    if (splitEnabled) {
+      // Split mode: Facecam (top) + Gameplay (bottom)
+      const facecamHeight = Math.floor((facecamSettings.height / 100) * outputHeight)
+      const gameplayHeight = Math.floor((gameplaySettings.height / 100) * outputHeight)
+      
+      // Calculate crop parameters
+      const facecamZoom = Math.max(0.5, Math.min(facecamSettings.zoom / 100, 2))
+      const gameplayZoom = Math.max(0.5, Math.min(gameplaySettings.zoom / 100, 2))
+      
+      // First scale video to output width, maintain aspect ratio
+      filterComplex.push(`[0:v]scale=${outputWidth}:-2,pad=${outputWidth}:${outputHeight}:(ow-iw)/2:(oh-ih)/2[v_full]`)
+      
+      // Now split scaled video
+      filterComplex.push('[v_full]split=2[facecam_src][gameplay_src]')
+      
+      // Facecam processing - crop from facecam portion of scaled video
+      const facecamCropWidth = Math.floor(outputWidth / facecamZoom)
+      const facecamCropHeight = Math.floor(facecamHeight / facecamZoom)
+      const facecamX = Math.floor((outputWidth - facecamCropWidth) / 2 + facecamSettings.panX * 5)
+      const facecamY = Math.floor((facecamHeight - facecamCropHeight) / 2 + facecamSettings.panY * 5)
+      
+      const validFacecamWidth = Math.max(1, Math.min(facecamCropWidth, outputWidth))
+      const validFacecamHeight = Math.max(1, Math.min(facecamCropHeight, facecamHeight))
+      const validFacecamX = Math.max(0, Math.min(facecamX, outputWidth - validFacecamWidth))
+      const validFacecamY = Math.max(0, Math.min(facecamY, facecamHeight - validFacecamHeight))
+      
+      filterComplex.push(
+        `[facecam_src]` +
+        `crop=${validFacecamWidth}:${validFacecamHeight}:${validFacecamX}:${validFacecamY},` +
+        `scale=${outputWidth}:${facecamHeight},` +
+        `setsar=1:1[facecam]`
+      )
+      
+      // Gameplay processing - crop from gameplay portion
+      const gameplayCropWidth = Math.floor(outputWidth / gameplayZoom)
+      const gameplayCropHeight = Math.floor(gameplayHeight / gameplayZoom)
+      const gameplayX = Math.floor((outputWidth - gameplayCropWidth) / 2 + gameplaySettings.panX * 5)
+      const gameplayY = Math.floor((facecamHeight - gameplayCropHeight) / 2 + gameplaySettings.panY * 5)
+      
+      const validGameplayWidth = Math.max(1, Math.min(gameplayCropWidth, outputWidth))
+      const validGameplayHeight = Math.max(1, Math.min(gameplayCropHeight, outputHeight))
+      const validGameplayX = Math.max(0, Math.min(gameplayX, outputWidth - validGameplayWidth))
+      const validGameplayY = Math.max(0, Math.min(gameplayY, outputHeight - validGameplayHeight))
+      
+      filterComplex.push(
+        `[gameplay_src]` +
+        `crop=${validGameplayWidth}:${validGameplayHeight}:${validGameplayX}:${validGameplayY},` +
+        `scale=${outputWidth}:${gameplayHeight},` +
+        `setsar=1:1[gameplay]`
+      )
+      
+      // Stack facecam and gameplay
+      filterComplex.push(`[facecam][gameplay]vstack[video_out]`)
+    } else {
+      // Full video mode: No splitting, just scale to 9:16
+      filterComplex.push(`[0:v]scale=${outputWidth}:${outputHeight},setsar=1:1[video_out]`)
+    }
     
     // Add watermark text if provided
     if (watermark) {
@@ -252,7 +256,7 @@ async function downloadYouTubeVideo(url: string, socket?: any): Promise<string> 
       'yt-dlp'
     ]
     
-    // Use the first path that exists, fall back to system path
+    // Use first path that exists, fall back to system path
     let ytDlpCommand = 'yt-dlp'
     for (const ytdlpPath of ytDlpPaths) {
       if (existsSync(ytdlpPath)) {
@@ -313,11 +317,13 @@ io.on('connection', (socket) => {
       facecamSettings, 
       gameplaySettings, 
       watermark, 
-      logoPath 
+      logoPath,
+      splitEnabled
     } = data
     
     console.log('Processing video request received')
     console.log('Clips:', clips.length)
+    console.log('Split enabled:', splitEnabled)
     console.log('Facecam settings:', facecamSettings)
     console.log('Gameplay settings:', gameplaySettings)
     
@@ -331,7 +337,8 @@ io.on('connection', (socket) => {
         gameplaySettings,
         watermark,
         logoPath,
-        socket
+        socket,
+        splitEnabled
       )
       
       socket.emit('process-complete', {

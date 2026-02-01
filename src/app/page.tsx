@@ -1053,6 +1053,8 @@ export default function VideoClipper() {
                     </div>
                   </div>
                 </div>
+                </>
+                )}
 
                 <Separator />
 
@@ -1140,6 +1142,8 @@ export default function VideoClipper() {
                     </div>
                   </div>
                 </div>
+                </>
+                )}
               </CardContent>
             </Card>
 
@@ -1226,7 +1230,7 @@ export default function VideoClipper() {
             </div>
           </div>
         </div>
-      </main>
+      </footer>
 
       {/* Clip Preview Dialog */}
       <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
@@ -1308,7 +1312,7 @@ export default function VideoClipper() {
                   {splitEnabled ? (
                     <>
                       {/* Split View */}
-                      <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-blue-900/40 to-blue-900/20 border-b-2 border-blue-500/60" style={{ height: \`\${facecamSettings.height}%\` }}>
+                      <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-blue-900/40 to-blue-900/20 border-b-2 border-blue-500/60" style={{ height: `${facecamSettings.height}%` }}>
                         <div className="absolute inset-0 flex items-center justify-center text-white/80">
                           <div className="text-center p-4">
                             <span className="block text-lg font-bold mb-1">Facecam</span>
@@ -1320,7 +1324,7 @@ export default function VideoClipper() {
                         </div>
                       </div>
                       
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-green-900/40 to-green-900/20 border-t-2 border-green-500/60" style={{ height: \`\${gameplaySettings.height}%\` }}>
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-green-900/40 to-green-900/20 border-t-2 border-green-500/60" style={{ height: `${gameplaySettings.height}%` }}>
                         <div className="absolute inset-0 flex items-center justify-center text-white/80">
                           <div className="text-center p-4">
                             <span className="block text-lg font-bold mb-1">Gameplay</span>
@@ -1363,7 +1367,6 @@ export default function VideoClipper() {
           )}
         </DialogContent>
       </Dialog>
-      </footer>
     </div>
   )
 }
