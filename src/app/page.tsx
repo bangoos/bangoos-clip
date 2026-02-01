@@ -408,12 +408,12 @@ export default function VideoClipper() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 container mx-auto px-3 py-4 overflow-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-6rem)]">
+      <main className="flex-1 container mx-auto px-3 py-4 overflow-y-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Left - Video Preview Area (7 cols) */}
-          <div className="lg:col-span-7 flex flex-col gap-3 overflow-hidden">
+          <div className="lg:col-span-7 flex flex-col gap-3">
             {/* Input & Video */}
-            <Card className="flex-1 flex flex-col">
+            <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div>
@@ -422,7 +422,7 @@ export default function VideoClipper() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="flex-1 flex flex-col gap-3 overflow-hidden">
+              <CardContent className="flex flex-col gap-3">
                 <Tabs defaultValue="upload" className="w-full">
                   <TabsList className="grid w-full grid-cols-2 h-8">
                     <TabsTrigger value="upload" className="text-xs">
@@ -488,13 +488,19 @@ export default function VideoClipper() {
 
                 <Separator className="my-2" />
 
-                {/* Video Preview - Full Height */}
+                {/* Compact Video Preview - Not Full Screen */}
                 {videoUrl && (
-                  <div className="flex-1 flex gap-3 min-h-0">
-                    {/* Original Video */}
-                    <div className="flex-1 flex flex-col gap-2">
-                      <div className="text-xs font-medium text-muted-foreground">Source</div>
-                      <div className="flex-1 relative bg-black rounded-lg overflow-hidden">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-medium text-muted-foreground">Video Preview</div>
+                      <div className="text-[10px] text-muted-foreground">Source & Live View</div>
+                    </div>
+                    <div className="flex gap-2 h-[200px]">
+                      {/* Original Video - Compact */}
+                      <div className="flex-1 relative bg-black rounded-lg overflow-hidden border border-border/30">
+                        <div className="absolute top-1.5 left-1.5 bg-black/70 text-white/90 text-[10px] px-1.5 py-0.5 rounded font-medium z-10">
+                          SOURCE
+                        </div>
                         <video
                           ref={videoRef}
                           src={videoUrl}
@@ -502,24 +508,24 @@ export default function VideoClipper() {
                           controls
                         />
                       </div>
-                    </div>
 
-                    {/* Live Preview */}
-                    <div className="flex-1 flex flex-col gap-2">
-                      <div className="text-xs font-medium text-muted-foreground">Preview {splitEnabled ? '(Layout)' : '(Live)'}</div>
-                      <div className="flex-1 relative bg-black rounded-lg overflow-hidden">
+                      {/* Live Preview - Compact */}
+                      <div className="flex-1 relative bg-black rounded-lg overflow-hidden border border-primary/30">
+                        <div className="absolute top-1.5 left-1.5 bg-primary/90 text-white text-[10px] px-1.5 py-0.5 rounded font-bold z-10">
+                          PREVIEW
+                        </div>
                         {splitEnabled ? (
-                          <div className="flex flex-col h-full gap-2">
-                            <div className="flex-1 relative bg-gradient-to-b from-blue-900/40 to-blue-900/30 border-b border-blue-500/40 rounded-t-lg flex items-center justify-center">
+                          <div className="flex flex-col h-full">
+                            <div className="flex-1 relative bg-gradient-to-b from-blue-900/40 to-blue-900/30 border-b border-blue-500/40 flex items-center justify-center">
                               <div className="text-center text-white/90">
-                                <div className="text-xs font-semibold mb-1">Facecam</div>
-                                <div className="text-[10px] opacity-80">{facecamSettings.height}%</div>
+                                <div className="text-[11px] font-semibold mb-0.5">Facecam</div>
+                                <div className="text-[9px] opacity-80">{facecamSettings.height}%</div>
                               </div>
                             </div>
-                            <div className="flex-1 relative bg-gradient-to-t from-green-900/40 to-green-900/30 border-t border-green-500/40 rounded-b-lg flex items-center justify-center">
+                            <div className="flex-1 relative bg-gradient-to-t from-green-900/40 to-green-900/30 border-t border-green-500/40 flex items-center justify-center">
                               <div className="text-center text-white/90">
-                                <div className="text-xs font-semibold mb-1">Gameplay</div>
-                                <div className="text-[10px] opacity-80">{gameplaySettings.height}%</div>
+                                <div className="text-[11px] font-semibold mb-0.5">Gameplay</div>
+                                <div className="text-[9px] opacity-80">{gameplaySettings.height}%</div>
                               </div>
                             </div>
                           </div>
@@ -536,11 +542,8 @@ export default function VideoClipper() {
                               loop
                               autoPlay
                             />
-                            <div className="absolute inset-0 border-2 border-green-500/50 pointer-events-none rounded">
-                              <div className="absolute top-1.5 left-1.5 bg-green-600/90 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">
-                                LIVE
-                              </div>
-                              <div className="absolute bottom-1.5 left-1.5 bg-black/70 text-green-300 text-[10px] px-1.5 py-0.5 rounded">
+                            <div className="absolute inset-0 border-2 border-green-500/50 pointer-events-none">
+                              <div className="absolute bottom-1.5 left-1.5 bg-black/80 text-green-300 text-[9px] px-1.5 py-0.5 rounded font-mono">
                                 Z:{facecamSettings.zoom}% P:{facecamSettings.panX},{facecamSettings.panY}
                               </div>
                             </div>
@@ -552,10 +555,10 @@ export default function VideoClipper() {
                 )}
 
                 {!videoUrl && (
-                  <div className="flex-1 flex items-center justify-center bg-muted/30 rounded-lg border-2 border-dashed border-muted/40">
+                  <div className="h-[200px] flex items-center justify-center bg-muted/30 rounded-lg border-2 border-dashed border-muted/40">
                     <div className="text-center text-muted-foreground">
-                      <Video className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                      <p className="text-sm">No video loaded</p>
+                      <Video className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                      <p className="text-xs">No video loaded</p>
                     </div>
                   </div>
                 )}
@@ -564,362 +567,360 @@ export default function VideoClipper() {
           </div>
 
           {/* Right - Controls Panel (5 cols) */}
-          <div className="lg:col-span-5 flex flex-col gap-3 overflow-hidden">
-            <ScrollArea className="flex-1 pr-2">
-              <div className="space-y-3">
-                {/* Mode Toggle */}
-                <Card className="p-4 transition-all hover:border-primary/50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Settings className="w-4 h-4 text-primary transition-transform hover:scale-110" />
-                      <div>
-                        <div className="text-sm font-semibold transition-colors">Split Mode</div>
-                        <div className="text-[10px] text-muted-foreground">
-                          {splitEnabled ? 'Facecam + Gameplay' : 'Full Video'}
-                        </div>
+          <div className="lg:col-span-5">
+            <div className="space-y-3">
+              {/* Mode Toggle */}
+              <Card className="p-4 transition-all hover:border-primary/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-primary transition-transform hover:scale-110" />
+                    <div>
+                      <div className="text-sm font-semibold transition-colors">Split Mode</div>
+                      <div className="text-[10px] text-muted-foreground">
+                        {splitEnabled ? 'Facecam + Gameplay' : 'Full Video'}
                       </div>
                     </div>
-                    <Switch
-                      checked={splitEnabled}
-                      onCheckedChange={setSplitEnabled}
-                      className="scale-90 transition-all hover:scale-95"
-                    />
                   </div>
-                </Card>
+                  <Switch
+                    checked={splitEnabled}
+                    onCheckedChange={setSplitEnabled}
+                    className="scale-90 transition-all hover:scale-95"
+                  />
+                </div>
+              </Card>
 
-                {/* Controls */}
-                {splitEnabled ? (
-                  // Split Mode Controls
-                  <Card className="p-4">
-                    <div className="space-y-4">
-                      <div className="text-xs font-semibold text-blue-500 mb-2">Facecam (Top)</div>
-                      <div className="space-y-3">
-                        <div className="space-y-1.5">
-                          <div className="flex justify-between text-[11px] text-muted-foreground">
-                            <span>Height</span>
-                            <span className="font-mono text-primary">{facecamSettings.height}%</span>
-                          </div>
-                          <Slider
-                            value={[facecamSettings.height]}
-                            onValueChange={([v]) => setFacecamSettings(prev => ({ ...prev, height: v }))}
-                            min={20}
-                            max={50}
-                            step={1}
-                            className="h-5"
-                          />
-                        </div>
-                      </div>
-                      <Separator className="my-3" />
-                      <div className="text-xs font-semibold text-green-500 mb-2">Gameplay (Bottom)</div>
-                      <div className="space-y-3">
-                        <div className="space-y-1.5">
-                          <div className="flex justify-between text-[11px] text-muted-foreground">
-                            <span>Height</span>
-                            <span className="font-mono text-primary">{gameplaySettings.height}%</span>
-                          </div>
-                          <Slider
-                            value={[gameplaySettings.height]}
-                            onValueChange={([v]) => setGameplaySettings(prev => ({ ...prev, height: v }))}
-                            min={40}
-                            max={80}
-                            step={1}
-                            className="h-5"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                ) : (
-                  // Full Mode Controls
-                  <Card className="p-4">
-                    <div className="space-y-3">
-                      <div className="text-xs font-semibold text-primary mb-3">Zoom & Pan</div>
-                      <div className="space-y-3">
-                        <div className="space-y-1.5">
-                          <div className="flex justify-between text-[11px] text-muted-foreground">
-                            <span>Zoom</span>
-                            <span className="font-mono text-primary">{facecamSettings.zoom}%</span>
-                          </div>
-                          <Slider
-                            value={[facecamSettings.zoom]}
-                            onValueChange={([v]) => setFacecamSettings(prev => ({ ...prev, zoom: v }))}
-                            min={50}
-                            max={200}
-                            step={5}
-                            className="h-5"
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="space-y-1.5">
-                            <div className="flex justify-between text-[11px] text-muted-foreground">
-                              <span>Pan X</span>
-                              <span className="font-mono text-primary">{facecamSettings.panX}</span>
-                            </div>
-                            <Slider
-                              value={[facecamSettings.panX]}
-                              onValueChange={([v]) => setFacecamSettings(prev => ({ ...prev, panX: v }))}
-                              min={-100}
-                              max={100}
-                              step={5}
-                              className="h-5"
-                            />
-                          </div>
-                          <div className="space-y-1.5">
-                            <div className="flex justify-between text-[11px] text-muted-foreground">
-                              <span>Pan Y</span>
-                              <span className="font-mono text-primary">{facecamSettings.panY}</span>
-                            </div>
-                            <Slider
-                              value={[facecamSettings.panY]}
-                              onValueChange={([v]) => setFacecamSettings(prev => ({ ...prev, panY: v }))}
-                              min={-100}
-                              max={100}
-                              step={5}
-                              className="h-5"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                )}
-
-                {/* Clips */}
-                <Card className="p-4 transition-all hover:border-primary/30">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Plus className="w-4 h-4 text-primary transition-transform hover:scale-110" />
-                      <span className="text-sm font-semibold transition-colors">Clips</span>
-                    </div>
-                    <Badge variant="secondary" className="text-[10px] h-5 transition-all">{clips.length}</Badge>
-                  </div>
-                  <Button
-                    className="w-full h-8 text-xs mb-3 transition-all hover:scale-105"
-                    onClick={addClip}
-                    disabled={processing}
-                  >
-                    <Plus className="w-3 h-3 mr-1.5" />
-                    Add Clip
-                  </Button>
-                  {clips.length === 0 ? (
-                    <div className="text-center py-6 text-muted-foreground">
-                      <Plus className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                      <p className="text-xs">No clips</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2">
-                      {clips.map((clip) => (
-                        <div
-                          key={clip.id}
-                          className={`p-2 rounded-lg border transition-all cursor-pointer ${
-                            currentClipId === clip.id
-                              ? 'border-primary bg-primary/5'
-                              : 'border-border hover:bg-muted/50'
-                          }`}
-                          onClick={() => setCurrentClipId(clip.id)}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <Input
-                              value={clip.name}
-                              onChange={(e) => updateClip(clip.id, 'name', e.target.value)}
-                              className="text-xs font-semibold h-6 px-2 py-0"
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                            <div className="flex gap-1">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0"
-                                onClick={(e) => { e.stopPropagation(); removeClip(clip.id) }}
-                                disabled={processing}
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <div className="text-[10px] text-muted-foreground mb-1">Start</div>
-                              <Input
-                                type="text"
-                                value={clip.startTime}
-                                onChange={(e) => updateClip(clip.id, 'startTime', e.target.value)}
-                                placeholder="00:00:00"
-                                className="text-[11px] font-mono h-7 px-2 py-0"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            </div>
-                            <div>
-                              <div className="text-[10px] text-muted-foreground mb-1">End</div>
-                              <Input
-                                type="text"
-                                value={clip.endTime}
-                                onChange={(e) => updateClip(clip.id, 'endTime', e.target.value)}
-                                placeholder="00:00:10"
-                                className="text-[11px] font-mono h-7 px-2 py-0"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            </div>
-                          </div>
-                          {completedClips.includes(clip.id) && (
-                            <div className="flex items-center gap-1.5 mt-2 text-[10px] text-green-500">
-                              <CheckCircle2 className="w-3 h-3" />
-                              <span>Completed</span>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {clips.length > 0 && (
-                    <>
-                      <Separator className="my-3" />
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-[11px] text-muted-foreground">
-                          <span>Progress</span>
-                          <span className="font-mono">{progress.toFixed(0)}%</span>
-                        </div>
-                        <Progress value={progress} className="h-1.5" />
-                        <Button
-                          className="w-full h-8 text-xs"
-                          onClick={processAllClips}
-                          disabled={processing}
-                        >
-                          {processing ? (
-                            <>
-                              <Pause className="w-3 h-3 mr-1.5" />
-                              Processing...
-                            </>
-                          ) : (
-                            <>
-                              <Play className="w-3 h-3 mr-1.5" />
-                              Process Clips
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                </Card>
-
-                {/* Watermark */}
+              {/* Controls */}
+              {splitEnabled ? (
+                // Split Mode Controls
                 <Card className="p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Type className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-semibold">Branding</span>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-[11px]">Watermark Text</Label>
-                      <Textarea
-                        placeholder="Enter watermark..."
-                        value={watermark}
-                        onChange={(e) => setWatermark(e.target.value)}
-                        rows={2}
-                        className="text-xs resize-none"
-                      />
+                  <div className="space-y-4">
+                    <div className="text-xs font-semibold text-blue-500 mb-2">Facecam (Top)</div>
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-[11px] text-muted-foreground">
+                          <span>Height</span>
+                          <span className="font-mono text-primary">{facecamSettings.height}%</span>
+                        </div>
+                        <Slider
+                          value={[facecamSettings.height]}
+                          onValueChange={([v]) => setFacecamSettings(prev => ({ ...prev, height: v }))}
+                          min={20}
+                          max={50}
+                          step={1}
+                          className="h-5"
+                        />
+                      </div>
                     </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-[11px]">Logo</Label>
-                      <div
-                        className="border-2 border-dashed rounded-lg p-3 text-center hover:bg-muted/30 transition-colors cursor-pointer"
-                        onClick={() => logoInputRef.current?.click()}
-                      >
-                        {logoFile ? (
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1.5">
-                              <ImageIcon className="w-3.5 h-3.5 text-primary" />
-                              <span className="text-xs truncate">{logoFile.name}</span>
-                            </div>
-                            <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setLogoFile(null)}>
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <>
-                            <ImageIcon className="w-6 h-6 mx-auto mb-1.5 opacity-40" />
-                            <p className="text-xs text-muted-foreground">Upload Logo</p>
-                          </>
-                        )}
-                        <input
-                          ref={logoInputRef}
-                          type="file"
-                          accept=".png"
-                          onChange={handleLogoUpload}
-                          className="hidden"
+                    <Separator className="my-3" />
+                    <div className="text-xs font-semibold text-green-500 mb-2">Gameplay (Bottom)</div>
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-[11px] text-muted-foreground">
+                          <span>Height</span>
+                          <span className="font-mono text-primary">{gameplaySettings.height}%</span>
+                        </div>
+                        <Slider
+                          value={[gameplaySettings.height]}
+                          onValueChange={([v]) => setGameplaySettings(prev => ({ ...prev, height: v }))}
+                          min={40}
+                          max={80}
+                          step={1}
+                          className="h-5"
                         />
                       </div>
                     </div>
                   </div>
                 </Card>
-
-                {/* Processed Videos */}
+              ) : (
+                // Full Mode Controls
                 <Card className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
-                      <span className="text-sm font-semibold">Download</span>
-                    </div>
-                    <Badge variant="secondary" className="text-[10px] h-5">{processedVideos.length}</Badge>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={fetchProcessedVideos}
-                    className="w-full h-7 text-xs mb-3"
-                  >
-                    <Download className="w-3 h-3 mr-1.5" />
-                    Refresh
-                  </Button>
-                  {processedVideos.length === 0 ? (
-                    <div className="text-center py-4 text-muted-foreground">
-                      <CheckCircle2 className="w-6 h-6 mx-auto mb-1.5 opacity-40" />
-                      <p className="text-xs">No videos</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-1.5 max-h-[180px] overflow-y-auto pr-2">
-                      {processedVideos.map((video, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-2 rounded-lg border hover:bg-muted/30 transition-colors"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs font-semibold truncate mb-0.5">{video.filename}</div>
-                            <div className="text-[10px] text-muted-foreground">
-                              {formatFileSize(video.size)}
-                            </div>
+                  <div className="space-y-3">
+                    <div className="text-xs font-semibold text-primary mb-3">Zoom & Pan</div>
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-[11px] text-muted-foreground">
+                          <span>Zoom</span>
+                          <span className="font-mono text-primary">{facecamSettings.zoom}%</span>
+                        </div>
+                        <Slider
+                          value={[facecamSettings.zoom]}
+                          onValueChange={([v]) => setFacecamSettings(prev => ({ ...prev, zoom: v }))}
+                          min={50}
+                          max={200}
+                          step={5}
+                          className="h-5"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-[11px] text-muted-foreground">
+                            <span>Pan X</span>
+                            <span className="font-mono text-primary">{facecamSettings.panX}</span>
                           </div>
-                          <Button
-                            size="sm"
-                            onClick={() => handleDownload(video.filename)}
-                            className="shrink-0 h-6 w-6 p-0"
-                          >
-                            <Download className="w-3 h-3" />
+                          <Slider
+                            value={[facecamSettings.panX]}
+                            onValueChange={([v]) => setFacecamSettings(prev => ({ ...prev, panX: v }))}
+                            min={-100}
+                            max={100}
+                            step={5}
+                            className="h-5"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-[11px] text-muted-foreground">
+                            <span>Pan Y</span>
+                            <span className="font-mono text-primary">{facecamSettings.panY}</span>
+                          </div>
+                          <Slider
+                            value={[facecamSettings.panY]}
+                            onValueChange={([v]) => setFacecamSettings(prev => ({ ...prev, panY: v }))}
+                            min={-100}
+                            max={100}
+                            step={5}
+                            className="h-5"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              )}
+
+              {/* Clips */}
+              <Card className="p-4 transition-all hover:border-primary/30">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Plus className="w-4 h-4 text-primary transition-transform hover:scale-110" />
+                    <span className="text-sm font-semibold transition-colors">Clips</span>
+                  </div>
+                  <Badge variant="secondary" className="text-[10px] h-5 transition-all">{clips.length}</Badge>
+                </div>
+                <Button
+                  className="w-full h-8 text-xs mb-3 transition-all hover:scale-105"
+                  onClick={addClip}
+                  disabled={processing}
+                >
+                  <Plus className="w-3 h-3 mr-1.5" />
+                  Add Clip
+                </Button>
+                {clips.length === 0 ? (
+                  <div className="text-center py-6 text-muted-foreground">
+                    <Plus className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                    <p className="text-xs">No clips</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2">
+                    {clips.map((clip) => (
+                      <div
+                        key={clip.id}
+                        className={`p-2 rounded-lg border transition-all cursor-pointer ${
+                          currentClipId === clip.id
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border hover:bg-muted/50'
+                        }`}
+                        onClick={() => setCurrentClipId(clip.id)}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <Input
+                            value={clip.name}
+                            onChange={(e) => updateClip(clip.id, 'name', e.target.value)}
+                            className="text-xs font-semibold h-6 px-2 py-0"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 p-0"
+                              onClick={(e) => { e.stopPropagation(); removeClip(clip.id) }}
+                              disabled={processing}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <div className="text-[10px] text-muted-foreground mb-1">Start</div>
+                            <Input
+                              type="text"
+                              value={clip.startTime}
+                              onChange={(e) => updateClip(clip.id, 'startTime', e.target.value)}
+                              placeholder="00:00:00"
+                              className="text-[11px] font-mono h-7 px-2 py-0"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-muted-foreground mb-1">End</div>
+                            <Input
+                              type="text"
+                              value={clip.endTime}
+                              onChange={(e) => updateClip(clip.id, 'endTime', e.target.value)}
+                              placeholder="00:00:10"
+                              className="text-[11px] font-mono h-7 px-2 py-0"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                        </div>
+                        {completedClips.includes(clip.id) && (
+                          <div className="flex items-center gap-1.5 mt-2 text-[10px] text-green-500">
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span>Completed</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {clips.length > 0 && (
+                  <>
+                    <Separator className="my-3" />
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-[11px] text-muted-foreground">
+                        <span>Progress</span>
+                        <span className="font-mono">{progress.toFixed(0)}%</span>
+                      </div>
+                      <Progress value={progress} className="h-1.5" />
+                      <Button
+                        className="w-full h-8 text-xs"
+                        onClick={processAllClips}
+                        disabled={processing}
+                      >
+                        {processing ? (
+                          <>
+                            <Pause className="w-3 h-3 mr-1.5" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-3 h-3 mr-1.5" />
+                            Process Clips
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </Card>
+
+              {/* Watermark */}
+              <Card className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Type className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-semibold">Branding</span>
+                </div>
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px]">Watermark Text</Label>
+                    <Textarea
+                      placeholder="Enter watermark..."
+                      value={watermark}
+                      onChange={(e) => setWatermark(e.target.value)}
+                      rows={2}
+                      className="text-xs resize-none"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px]">Logo</Label>
+                    <div
+                      className="border-2 border-dashed rounded-lg p-3 text-center hover:bg-muted/30 transition-colors cursor-pointer"
+                      onClick={() => logoInputRef.current?.click()}
+                    >
+                      {logoFile ? (
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <ImageIcon className="w-3.5 h-3.5 text-primary" />
+                            <span className="text-xs truncate">{logoFile.name}</span>
+                          </div>
+                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => setLogoFile(null)}>
+                            <Trash2 className="w-3 h-3" />
                           </Button>
                         </div>
-                      ))}
+                      ) : (
+                        <>
+                          <ImageIcon className="w-6 h-6 mx-auto mb-1.5 opacity-40" />
+                          <p className="text-xs text-muted-foreground">Upload Logo</p>
+                        </>
+                      )}
+                      <input
+                        ref={logoInputRef}
+                        type="file"
+                        accept=".png"
+                        onChange={handleLogoUpload}
+                        className="hidden"
+                      />
                     </div>
-                  )}
-                </Card>
+                  </div>
+                </div>
+              </Card>
 
-                {/* Logs */}
-                <Card className="p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Terminal className="w-4 h-4 text-amber-500" />
-                    <span className="text-sm font-semibold">Logs</span>
+              {/* Processed Videos */}
+              <Card className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <span className="text-sm font-semibold">Download</span>
                   </div>
-                  <div className="bg-black/90 rounded-lg p-3 max-h-[150px] overflow-y-auto font-mono text-[10px] text-green-400">
-                    {logs.length === 0 ? (
-                      <p className="text-gray-600">No logs...</p>
-                    ) : (
-                      logs.map((log, index) => (
-                        <p key={index} className="mb-0.5 last:mb-0">{log}</p>
-                      ))
-                    )}
+                  <Badge variant="secondary" className="text-[10px] h-5">{processedVideos.length}</Badge>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={fetchProcessedVideos}
+                  className="w-full h-7 text-xs mb-3"
+                >
+                  <Download className="w-3 h-3 mr-1.5" />
+                  Refresh
+                </Button>
+                {processedVideos.length === 0 ? (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <CheckCircle2 className="w-6 h-6 mx-auto mb-1.5 opacity-40" />
+                    <p className="text-xs">No videos</p>
                   </div>
-                </Card>
-              </div>
-            </ScrollArea>
+                ) : (
+                  <div className="space-y-1.5 max-h-[180px] overflow-y-auto pr-2">
+                    {processedVideos.map((video, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-2 rounded-lg border hover:bg-muted/30 transition-colors"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-semibold truncate mb-0.5">{video.filename}</div>
+                          <div className="text-[10px] text-muted-foreground">
+                            {formatFileSize(video.size)}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => handleDownload(video.filename)}
+                          className="shrink-0 h-6 w-6 p-0"
+                        >
+                          <Download className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+
+              {/* Logs */}
+              <Card className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Terminal className="w-4 h-4 text-amber-500" />
+                  <span className="text-sm font-semibold">Logs</span>
+                </div>
+                <div className="bg-black/90 rounded-lg p-3 max-h-[150px] overflow-y-auto font-mono text-[10px] text-green-400">
+                  {logs.length === 0 ? (
+                    <p className="text-gray-600">No logs...</p>
+                  ) : (
+                    logs.map((log, index) => (
+                      <p key={index} className="mb-0.5 last:mb-0">{log}</p>
+                    ))
+                  )}
+                </div>
+              </Card>
+            </div>
           </div>
         </div>
       </main>
