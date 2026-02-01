@@ -66,6 +66,7 @@ interface ProcessedVideo {
 
 export default function VideoClipper() {
   const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const clipCounterRef = useRef(0)
 
   const [videoFile, setVideoFile] = useState<File | null>(null)
@@ -73,6 +74,7 @@ export default function VideoClipper() {
   const [videoPath, setVideoPath] = useState<string>('')
   const [youtubeUrl, setYoutubeUrl] = useState<string>('')
   const [clips, setClips] = useState<Clip[]>([])
+  const [currentClipId, setCurrentClipId] = useState<string | null>(null)
   const [socketConnected, setSocketConnected] = useState(false)
   const [downloadProgress, setDownloadProgress] = useState(0)
   const [processedVideos, setProcessedVideos] = useState<ProcessedVideo[]>([])
@@ -91,6 +93,7 @@ export default function VideoClipper() {
   })
   const [watermark, setWatermark] = useState<string>('')
   const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [logoPath, setLogoPath] = useState<string>('')
   const [logs, setLogs] = useState<string[]>([])
   const [processing, setProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -261,6 +264,10 @@ export default function VideoClipper() {
 
   // WebSocket connection
   useEffect(() => {
+    // Set mounted to true after component mounts (prevents hydration mismatch)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true)
+
     // Fetch processed videos on mount
     fetchProcessedVideos()
 
@@ -389,7 +396,7 @@ export default function VideoClipper() {
                 className="h-9 w-9"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               >
-                {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                {mounted && theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
               <Badge variant={socketConnected ? "default" : "secondary"} className="gap-2 h-8">
                 <div className={`w-2 h-2 rounded-full ${socketConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
