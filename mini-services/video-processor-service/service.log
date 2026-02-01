@@ -1,30 +1,5 @@
+$ bun --hot index.ts
 Video processor service running on port 3002
 Output directory: /home/z/Downloads/KlipPod_Output
 Cache directory: /home/z/my-project/mini-services/video-processor-service/cache
-Client connected: 1BgO15qV1Nm1phVJAAAB
-Client connected: GNrv-fhnHP0sJawzAAAD
-Client connected: edtS74KyqGMAQqyTAAAF
-Client disconnected: 1BgO15qV1Nm1phVJAAAB
-Client disconnected: GNrv-fhnHP0sJawzAAAD
-Client disconnected: edtS74KyqGMAQqyTAAAF
-Client connected: Lb7Yhj70EGka1OPMAAAH
-Client connected: Otoeh9xrCJ8x7VwdAAAJ
-Client disconnected: Otoeh9xrCJ8x7VwdAAAJ
-Client disconnected: Lb7Yhj70EGka1OPMAAAH
-Client connected: qU-1Re_9gJD598yoAAAL
-Client connected: 4JXUERj_fPg1b7n3AAAN
-Client disconnected: 4JXUERj_fPg1b7n3AAAN
-Client disconnected: qU-1Re_9gJD598yoAAAL
-Client connected: vpW44sK86l5p9vfNAAAP
-Client connected: _vcLANHvi2PPoSlVAAAR
-Video processor service running on port 3002
-Output directory: /home/z/Downloads/KlipPod_Output
-Cache directory: /home/z/my-project/mini-services/video-processor-service/cache
-Client disconnected: _vcLANHvi2PPoSlVAAAR
-Client disconnected: vpW44sK86l5p9vfNAAAP
-Client connected: VyXjH6fi4W0hXjBpAAAB
-Client connected: 2J9jo3WbeRb-xG8PAAAD
-Shutting down gracefully...
-Shutting down gracefully...
-Client disconnected: VyXjH6fi4W0hXjBpAAAB
-Client disconnected: 2J9jo3WbeRb-xG8PAAAD
+Client connected: c51LZ9BGBtN6QsGtAAAB

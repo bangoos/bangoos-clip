@@ -96,61 +96,61 @@ async function processClip(
   return new Promise((resolve, reject) => {
     const outputWidth = 1080
     const outputHeight = 1920
-    
+
     // Build complex FFMPEG filter
     let filterComplex = []
-    
+
     if (splitEnabled) {
       // Split mode: Facecam (top) + Gameplay (bottom)
       const facecamHeight = Math.floor((facecamSettings.height / 100) * outputHeight)
       const gameplayHeight = Math.floor((gameplaySettings.height / 100) * outputHeight)
-      
+
       // Calculate crop parameters
       const facecamZoom = Math.max(0.5, Math.min(facecamSettings.zoom / 100, 2))
       const gameplayZoom = Math.max(0.5, Math.min(gameplaySettings.zoom / 100, 2))
-      
+
       // First scale video to output width, maintain aspect ratio
       filterComplex.push(`[0:v]scale=${outputWidth}:-2,pad=${outputWidth}:${outputHeight}:(ow-iw)/2:(oh-ih)/2[v_full]`)
-      
+
       // Now split scaled video
       filterComplex.push('[v_full]split=2[facecam_src][gameplay_src]')
-      
+
       // Facecam processing - crop from facecam portion of scaled video
       const facecamCropWidth = Math.floor(outputWidth / facecamZoom)
       const facecamCropHeight = Math.floor(facecamHeight / facecamZoom)
       const facecamX = Math.floor((outputWidth - facecamCropWidth) / 2 + facecamSettings.panX * 5)
       const facecamY = Math.floor((facecamHeight - facecamCropHeight) / 2 + facecamSettings.panY * 5)
-      
+
       const validFacecamWidth = Math.max(1, Math.min(facecamCropWidth, outputWidth))
       const validFacecamHeight = Math.max(1, Math.min(facecamCropHeight, facecamHeight))
       const validFacecamX = Math.max(0, Math.min(facecamX, outputWidth - validFacecamWidth))
       const validFacecamY = Math.max(0, Math.min(facecamY, facecamHeight - validFacecamHeight))
-      
+
       filterComplex.push(
         `[facecam_src]` +
         `crop=${validFacecamWidth}:${validFacecamHeight}:${validFacecamX}:${validFacecamY},` +
         `scale=${outputWidth}:${facecamHeight},` +
         `setsar=1:1[facecam]`
       )
-      
+
       // Gameplay processing - crop from gameplay portion
       const gameplayCropWidth = Math.floor(outputWidth / gameplayZoom)
       const gameplayCropHeight = Math.floor(gameplayHeight / gameplayZoom)
       const gameplayX = Math.floor((outputWidth - gameplayCropWidth) / 2 + gameplaySettings.panX * 5)
       const gameplayY = Math.floor((facecamHeight - gameplayCropHeight) / 2 + gameplaySettings.panY * 5)
-      
+
       const validGameplayWidth = Math.max(1, Math.min(gameplayCropWidth, outputWidth))
       const validGameplayHeight = Math.max(1, Math.min(gameplayCropHeight, outputHeight))
       const validGameplayX = Math.max(0, Math.min(gameplayX, outputWidth - validGameplayWidth))
       const validGameplayY = Math.max(0, Math.min(gameplayY, outputHeight - validGameplayHeight))
-      
+
       filterComplex.push(
         `[gameplay_src]` +
         `crop=${validGameplayWidth}:${validGameplayHeight}:${validGameplayX}:${validGameplayY},` +
         `scale=${outputWidth}:${gameplayHeight},` +
         `setsar=1:1[gameplay]`
       )
-      
+
       // Stack facecam and gameplay
       filterComplex.push(`[facecam][gameplay]vstack[video_out]`)
     } else {
@@ -182,24 +182,44 @@ async function processClip(
         `setsar=1:1[video_out]`
       )
     }
-    
+
+    let videoOutputLabel = '[video_out]'
+
+    // Add logo overlay if provided
+    if (logoPath) {
+      // Scale logo to reasonable size (e.g., 100px width)
+      filterComplex.push(`[1:v]scale=100:-1[logo_scaled]`)
+      // Overlay logo at top-right corner with 10px padding
+      filterComplex.push(`[video_out][logo_scaled]overlay=W-w-10:10[video_with_logo]`)
+      videoOutputLabel = '[video_with_logo]'
+    }
+
     // Add watermark text if provided
     if (watermark) {
       filterComplex.push(
-        `[video_out]` +
+        `${videoOutputLabel}` +
         `drawtext=text='${watermark}':` +
         `x=w-tw-10:y=h-th-10:` +
         `fontsize=24:fontcolor=white@0.8:` +
         `shadowx=2:shadowy=2:shadowcolor=black@0.5[video_watermarked]`
       )
+      videoOutputLabel = '[video_watermarked]'
     }
-    
+
     const ffmpegArgs = [
       '-i', videoPath,
+    ]
+
+    // Add logo input if provided
+    if (logoPath) {
+      ffmpegArgs.push('-i', logoPath)
+    }
+
+    ffmpegArgs.push(
       '-ss', clip.startTime,
       '-to', clip.endTime,
       '-filter_complex', filterComplex.join(';'),
-      '-map', watermark || logoPath ? '[video_watermarked]' : '[video_out]',
+      '-map', videoOutputLabel,
       '-map', '0:a',  // Map audio stream from input
       '-c:v', 'libx264',
       '-preset', 'medium',
@@ -211,7 +231,7 @@ async function processClip(
       '-shortest',  // Match shortest stream duration
       '-y',
       outputPath
-    ]
+    )
     
     console.log('FFMPEG command:', ffmpegArgs.join(' '))
     
