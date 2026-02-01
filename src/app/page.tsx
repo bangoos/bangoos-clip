@@ -495,11 +495,11 @@ export default function VideoClipper() {
                       <div className="text-xs font-medium text-muted-foreground">Video Preview (9:16)</div>
                       <div className="text-[10px] text-muted-foreground">Source & Live View</div>
                     </div>
-                    <div className="flex gap-3 justify-center items-start">
+                    <div className="flex gap-4 justify-center items-start">
                       {/* Original Video - Portrait Preview */}
                       <div className="flex flex-col items-center gap-1.5">
                         <div className="text-[10px] text-muted-foreground font-medium">SOURCE</div>
-                        <div className="relative bg-black rounded-lg overflow-hidden border border-border/30" style={{ width: '90px', height: '160px' }}>
+                        <div className="relative bg-black rounded-lg overflow-hidden border border-border/30" style={{ width: '180px', height: '320px' }}>
                           <video
                             ref={videoRef}
                             src={videoUrl}
@@ -512,7 +512,7 @@ export default function VideoClipper() {
                       {/* Live Preview - Portrait 9:16 */}
                       <div className="flex flex-col items-center gap-1.5">
                         <div className="text-[10px] text-primary font-bold">PREVIEW</div>
-                        <div className="relative bg-black rounded-lg overflow-hidden border border-primary/30" style={{ width: '90px', height: '160px' }}>
+                        <div className="relative bg-black rounded-lg overflow-hidden border border-primary/30" style={{ width: '180px', height: '320px' }}>
                           {splitEnabled ? (
                             <>
                               {/* Split Mode - Real-time Video Preview */}
@@ -521,7 +521,7 @@ export default function VideoClipper() {
                                 className="absolute top-0 left-0 w-full object-cover"
                                 style={{
                                   height: `${facecamSettings.height}%`,
-                                  transform: `scale(${facecamSettings.zoom / 100}) translate(${facecamSettings.panX * 3}px, ${facecamSettings.panY * 3}px)`,
+                                  transform: `scale(${facecamSettings.zoom / 100}) translate(${facecamSettings.panX * 2}px, ${facecamSettings.panY * 2}px)`,
                                   transformOrigin: 'center'
                                 }}
                                 muted
@@ -534,7 +534,7 @@ export default function VideoClipper() {
                                 style={{
                                   height: `${gameplaySettings.height}%`,
                                   top: `${100 - gameplaySettings.height}%`,
-                                  transform: `scale(${gameplaySettings.zoom / 100}) translate(${gameplaySettings.panX * 3}px, ${gameplaySettings.panY * 3}px)`,
+                                  transform: `scale(${gameplaySettings.zoom / 100}) translate(${gameplaySettings.panX * 2}px, ${gameplaySettings.panY * 2}px)`,
                                   transformOrigin: 'center'
                                 }}
                                 muted
@@ -560,7 +560,7 @@ export default function VideoClipper() {
                               src={videoUrl}
                               className="absolute inset-0 w-full h-full object-cover"
                               style={{
-                                transform: `scale(${facecamSettings.zoom / 100}) translate(${facecamSettings.panX * 3}px, ${facecamSettings.panY * 3}px)`,
+                                transform: `scale(${facecamSettings.zoom / 100}) translate(${facecamSettings.panX * 2}px, ${facecamSettings.panY * 2}px)`,
                                 transformOrigin: 'center'
                               }}
                               muted
@@ -583,10 +583,10 @@ export default function VideoClipper() {
                 )}
 
                 {!videoUrl && (
-                  <div className="flex flex-col items-center justify-center bg-muted/30 rounded-lg border-2 border-dashed border-muted/40 py-8">
+                  <div className="flex flex-col items-center justify-center bg-muted/30 rounded-lg border-2 border-dashed border-muted/40 py-12">
                     <div className="text-center text-muted-foreground">
-                      <Video className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                      <p className="text-xs">Upload video for 9:16 preview</p>
+                      <Video className="w-10 h-10 mx-auto mb-3 opacity-40" />
+                      <p className="text-sm">Upload video for 9:16 preview</p>
                     </div>
                   </div>
                 )}
