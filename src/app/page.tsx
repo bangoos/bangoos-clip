@@ -527,150 +527,153 @@ export default function VideoClipper() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <ZoomIn className="w-5 h-5" />
-                  Real-time Zoom Preview
+                  {splitEnabled ? 'Split Layout Preview' : 'Live Zoom Preview'}
                 </CardTitle>
                 <CardDescription>
-                  See zoom & pan effects in real-time
+                  {splitEnabled ? 'Preview the split layout (zoom/pan for visual only)' : 'See zoom & pan effects in real-time'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Tabs defaultValue="facecam" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-4">
-                    <TabsTrigger value="facecam">
-                      Facecam Area
-                    </TabsTrigger>
-                    <TabsTrigger value="gameplay">
-                      Gameplay Area
-                    </TabsTrigger>
-                  </TabsList>
+                {splitEnabled ? (
+                  // Split Mode - Layout Preview Only
+                  <Tabs defaultValue="facecam" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 mb-4">
+                      <TabsTrigger value="facecam">
+                        Facecam (Top)
+                      </TabsTrigger>
+                      <TabsTrigger value="gameplay">
+                        Gameplay (Bottom)
+                      </TabsTrigger>
+                    </TabsList>
 
-                  <TabsContent value="facecam" className="mt-4">
-                    <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[500px] mx-auto">
-                      {videoUrl ? (
-                        <video
-                          src={videoUrl}
-                          className="w-full h-full object-cover"
-                          style={{
-                            transform: `scale(${facecamSettings.zoom / 100}) translate(${facecamSettings.panX * 2}px, ${facecamSettings.panY * 2}px)`,
-                            transformOrigin: 'center'
-                          }}
-                          muted
-                          loop
-                          autoPlay
-                        />
-                      ) : null}
-                      
-                      {/* Facecam crop indicator */}
-                      <div className="absolute inset-0 border-4 border-blue-500/70 pointer-events-none rounded">
-                        <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded font-bold">
-                          FACECAM
-                        </div>
-                        <div className="absolute bottom-2 left-2 bg-black/70 text-blue-300 text-xs px-2 py-1 rounded">
-                          Zoom: {facecamSettings.zoom}% | Pan: {facecamSettings.panX}, {facecamSettings.panY}
+                    <TabsContent value="facecam" className="mt-4">
+                      <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[500px] mx-auto">
+                        <div
+                          className="absolute inset-0 bg-gradient-to-b from-blue-900/40 to-blue-900/20"
+                          style={{ height: `${facecamSettings.height}%` }}
+                        >
+                          <div className="absolute inset-0 flex items-center justify-center text-white/80">
+                            <div className="text-center p-4">
+                              <span className="block text-lg font-bold mb-1">Facecam Area</span>
+                              <span className="text-xs">Layout preview (top {facecamSettings.height}% of video)</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
+                    </TabsContent>
 
-                      {/* Facecam area height indicator */}
-                      <div 
-                        className="absolute top-0 left-0 right-0 border-t-4 border-dashed border-blue-400"
-                        style={{ top: `${facecamSettings.height}%` }}
-                      >
-                        <div className="absolute -top-6 left-2 text-xs text-blue-400 font-bold whitespace-nowrap">
-                          Facecam Area Bottom ({facecamSettings.height}%)
+                    <TabsContent value="gameplay" className="mt-4">
+                      <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[500px] mx-auto">
+                        <div
+                          className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-green-900/40 to-green-900/20"
+                          style={{ height: `${gameplaySettings.height}%` }}
+                        >
+                          <div className="absolute inset-0 flex items-center justify-center text-white/80">
+                            <div className="text-center p-4">
+                              <span className="block text-lg font-bold mb-1">Gameplay Area</span>
+                              <span className="text-xs">Layout preview (bottom {gameplaySettings.height}% of video)</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </TabsContent>
+                    </TabsContent>
+                  </Tabs>
+                ) : (
+                  // Full Mode - Live Zoom Preview
+                  <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[500px] mx-auto">
+                    {videoUrl ? (
+                      <video
+                        src={videoUrl}
+                        className="w-full h-full object-cover"
+                        style={{
+                          transform: `scale(${facecamSettings.zoom / 100}) translate(${facecamSettings.panX * 2}px, ${facecamSettings.panY * 2}px)`,
+                          transformOrigin: 'center'
+                        }}
+                        muted
+                        loop
+                        autoPlay
+                      />
+                    ) : null}
 
-                  <TabsContent value="gameplay" className="mt-4">
-                    <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[500px] mx-auto">
-                      {videoUrl ? (
-                        <video
-                          src={videoUrl}
-                          className="w-full h-full object-cover"
-                          style={{
-                            transform: `scale(${gameplaySettings.zoom / 100}) translate(${gameplaySettings.panX * 2}px, ${gameplaySettings.panY * 2}px)`,
-                            transformOrigin: 'center'
-                          }}
-                          muted
-                          loop
-                          autoPlay
-                        />
-                      ) : null}
-                      
-                      {/* Gameplay crop indicator */}
-                      <div className="absolute inset-0 border-4 border-green-500/70 pointer-events-none rounded">
-                        <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded font-bold">
-                          GAMEPLAY
-                        </div>
-                        <div className="absolute bottom-2 left-2 bg-black/70 text-green-300 text-xs px-2 py-1 rounded">
-                          Zoom: {gameplaySettings.zoom}% | Pan: {gameplaySettings.panX}, {gameplaySettings.panY}
-                        </div>
+                    {/* Zoom/Pan indicator overlay */}
+                    <div className="absolute inset-0 border-4 border-green-500/70 pointer-events-none rounded">
+                      <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded font-bold">
+                        LIVE ZOOM PREVIEW
                       </div>
-
-                      {/* Gameplay area height indicator */}
-                      <div 
-                        className="absolute top-0 left-0 right-0 border-b-4 border-dashed border-green-400"
-                        style={{ height: `${gameplaySettings.height}%` }}
-                      >
-                        <div className="absolute -bottom-6 left-2 text-xs text-green-400 font-bold whitespace-nowrap">
-                          Gameplay Area Top ({gameplaySettings.height}%)
-                        </div>
+                      <div className="absolute bottom-2 left-2 bg-black/70 text-green-300 text-xs px-2 py-1 rounded">
+                        Zoom: {facecamSettings.zoom}% | Pan: {facecamSettings.panX}, {facecamSettings.panY}
                       </div>
                     </div>
-                  </TabsContent>
-                </Tabs>
+                  </div>
+                )}
 
                 {!videoUrl && (
                   <div className="text-center py-8 text-muted-foreground">
                     <ZoomIn className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Upload a video to see real-time preview</p>
+                    <p className="text-sm">Upload a video to see preview</p>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* 9:16 Split Preview */}
+            {/* 9:16 Output Preview */}
             <Card>
               <CardHeader>
                 <CardTitle>Final Output Preview</CardTitle>
                 <CardDescription>
-                  How your 9:16 video will look
+                  {splitEnabled ? 'Split view with facecam and gameplay sections' : 'Full video converted to portrait (9:16) with zoom/pan'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[500px] mx-auto">
-                  {/* Facecam Area */}
-                  <div 
-                    className="absolute top-0 left-0 right-0 bg-gradient-to-b from-blue-900/40 to-blue-900/20 border-b-2 border-blue-500/60"
-                    style={{ height: `${facecamSettings.height}%` }}
-                  >
-                    <div className="absolute inset-0 flex items-center justify-center text-white/80">
-                      <div className="text-center p-4">
-                        <span className="block text-lg font-bold mb-1">Facecam</span>
-                        <div className="flex gap-2 justify-center text-xs">
-                          <span className="bg-black/50 px-2 py-1 rounded">Zoom: {facecamSettings.zoom}%</span>
-                          <span className="bg-black/50 px-2 py-1 rounded">Pan: {facecamSettings.panX}, {facecamSettings.panY}</span>
+                  {splitEnabled ? (
+                    // Split Mode Preview
+                    <>
+                    {/* Facecam Area */}
+                    <div
+                      className="absolute top-0 left-0 right-0 bg-gradient-to-b from-blue-900/40 to-blue-900/20 border-b-2 border-blue-500/60"
+                      style={{ height: `${facecamSettings.height}%` }}
+                    >
+                      <div className="absolute inset-0 flex items-center justify-center text-white/80">
+                        <div className="text-center p-4">
+                          <span className="block text-lg font-bold mb-1">Facecam</span>
+                          <span className="text-xs">Layout preview only</span>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Gameplay Area */}
-                  <div 
-                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-green-900/40 to-green-900/20 border-t-2 border-green-500/60"
-                    style={{ height: `${gameplaySettings.height}%` }}
-                  >
-                    <div className="absolute inset-0 flex items-center justify-center text-white/80">
-                      <div className="text-center p-4">
-                        <span className="block text-lg font-bold mb-1">Gameplay</span>
-                        <div className="flex gap-2 justify-center text-xs">
-                          <span className="bg-black/50 px-2 py-1 rounded">Zoom: {gameplaySettings.zoom}%</span>
-                          <span className="bg-black/50 px-2 py-1 rounded">Pan: {gameplaySettings.panX}, {gameplaySettings.panY}</span>
+
+                    {/* Gameplay Area */}
+                    <div
+                      className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-green-900/40 to-green-900/20 border-t-2 border-green-500/60"
+                      style={{ height: `${gameplaySettings.height}%` }}
+                    >
+                      <div className="absolute inset-0 flex items-center justify-center text-white/80">
+                        <div className="text-center p-4">
+                          <span className="block text-lg font-bold mb-1">Gameplay</span>
+                          <span className="text-xs">Layout preview only</span>
                         </div>
                       </div>
                     </div>
-                  </div>
+                    </>
+                  ) : (
+                    // Full Mode Preview with Zoom/Pan
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900/40 to-gray-900/20">
+                      <div className="text-center p-4 text-white/80">
+                        <span className="block text-lg font-bold mb-2">Full Video Mode</span>
+                        <div className="flex flex-col gap-2 text-xs">
+                          <div className="bg-black/50 px-3 py-1.5 rounded">
+                            <span className="text-green-400">Zoom:</span> {facecamSettings.zoom}%
+                          </div>
+                          <div className="bg-black/50 px-3 py-1.5 rounded">
+                            <span className="text-green-400">Pan X:</span> {facecamSettings.panX}
+                          </div>
+                          <div className="bg-black/50 px-3 py-1.5 rounded">
+                            <span className="text-green-400">Pan Y:</span> {facecamSettings.panY}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Watermark Preview */}
                   {watermark && (
@@ -963,187 +966,138 @@ export default function VideoClipper() {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {splitEnabled 
-                    ? "Split video into facecam (top) and gameplay (bottom) sections"
-                    : "Render full video without splitting"
+                  {splitEnabled
+                    ? "Split video into facecam (top) and gameplay (bottom) sections. Zoom controls are for layout preview only."
+                    : "Full video mode with live zoom/pan editing. Video will be converted to portrait (9:16)."
                   }
                 </p>
-                
-                {/* Facecam Settings */}
-                {splitEnabled && (
-                  <>
-                  <div className="space-y-4">
+
+                {/* Zoom/Pan Settings - Always visible but behavior changes based on mode */}
+                <div className="space-y-4">
                   <div className="flex items-center gap-2 pb-2 border-b">
-                    <Video className="w-4 h-4 text-blue-500" />
-                    <h3 className="font-semibold">Facecam Area</h3>
+                    <Video className="w-4 h-4 text-primary" />
+                    <h3 className="font-semibold">
+                      {splitEnabled ? 'Split Layout Preview' : 'Zoom & Pan Controls'}
+                    </h3>
                   </div>
-                  
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <Label className="text-sm">Height</Label>
-                        <span className="text-sm font-mono">{facecamSettings.height}%</span>
-                      </div>
-                      <Slider
-                        value={[facecamSettings.height]}
-                        onValueChange={([value]) => 
-                          setFacecamSettings(prev => ({ ...prev, height: value }))
-                        }
-                        min={20}
-                        max={50}
-                        step={1}
-                      />
+
+                  {splitEnabled ? (
+                    // Split Mode - Show Facecam and Gameplay sections for layout preview
+                    <>
+                    <div className="space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b border-blue-200 dark:border-blue-900">
+                      <Video className="w-3 h-3 text-blue-500" />
+                      <h4 className="text-sm font-semibold text-blue-600 dark:text-blue-400">Facecam (Top)</h4>
                     </div>
 
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <Label className="text-sm flex items-center gap-1">
-                          <ZoomIn className="w-3 h-3" />
-                          Zoom
-                        </Label>
-                        <span className="text-sm font-mono">{facecamSettings.zoom}%</span>
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <Label className="text-sm">Height</Label>
+                          <span className="text-sm font-mono">{facecamSettings.height}%</span>
+                        </div>
+                        <Slider
+                          value={[facecamSettings.height]}
+                          onValueChange={([value]) =>
+                            setFacecamSettings(prev => ({ ...prev, height: value }))
+                          }
+                          min={20}
+                          max={50}
+                          step={1}
+                        />
                       </div>
-                      <Slider
-                        value={[facecamSettings.zoom]}
-                        onValueChange={([value]) => 
-                          setFacecamSettings(prev => ({ ...prev, zoom: value }))
-                        }
-                        min={50}
-                        max={200}
-                        step={5}
-                      />
+                    </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <Label className="text-sm flex items-center gap-1">
-                          <Move className="w-3 h-3" />
-                          Pan X
-                        </Label>
-                        <span className="text-sm font-mono">{facecamSettings.panX}</span>
-                      </div>
-                      <Slider
-                        value={[facecamSettings.panX]}
-                        onValueChange={([value]) => 
-                          setFacecamSettings(prev => ({ ...prev, panX: value }))
-                        }
-                        min={-100}
-                        max={100}
-                        step={5}
-                      />
+                    <Separator />
+
+                    <div className="space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b border-green-200 dark:border-green-900">
+                      <Video className="w-3 h-3 text-green-500" />
+                      <h4 className="text-sm font-semibold text-green-600 dark:text-green-400">Gameplay (Bottom)</h4>
                     </div>
 
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <Label className="text-sm flex items-center gap-1">
-                          <Move className="w-3 h-3" />
-                          Pan Y
-                        </Label>
-                        <span className="text-sm font-mono">{facecamSettings.panY}</span>
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <Label className="text-sm">Height</Label>
+                          <span className="text-sm font-mono">{gameplaySettings.height}%</span>
+                        </div>
+                        <Slider
+                          value={[gameplaySettings.height]}
+                          onValueChange={([value]) =>
+                            setGameplaySettings(prev => ({ ...prev, height: value }))
+                          }
+                          min={40}
+                          max={80}
+                          step={1}
+                        />
                       </div>
-                      <Slider
-                        value={[facecamSettings.panY]}
-                        onValueChange={([value]) => 
-                          setFacecamSettings(prev => ({ ...prev, panY: value }))
-                        }
-                        min={-100}
-                        max={100}
-                        step={5}
-                      />
                     </div>
-                  </div>
+                    </div>
+                    </>
+                  ) : (
+                    // Full Mode - Live Zoom/Pan Controls
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <Label className="text-sm flex items-center gap-1">
+                            <ZoomIn className="w-3 h-3" />
+                            Zoom
+                          </Label>
+                          <span className="text-sm font-mono">{facecamSettings.zoom}%</span>
+                        </div>
+                        <Slider
+                          value={[facecamSettings.zoom]}
+                          onValueChange={([value]) =>
+                            setFacecamSettings(prev => ({ ...prev, zoom: value }))
+                          }
+                          min={50}
+                          max={200}
+                          step={5}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <Label className="text-sm flex items-center gap-1">
+                            <Move className="w-3 h-3" />
+                            Pan X
+                          </Label>
+                          <span className="text-sm font-mono">{facecamSettings.panX}</span>
+                        </div>
+                        <Slider
+                          value={[facecamSettings.panX]}
+                          onValueChange={([value]) =>
+                            setFacecamSettings(prev => ({ ...prev, panX: value }))
+                          }
+                          min={-100}
+                          max={100}
+                          step={5}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <Label className="text-sm flex items-center gap-1">
+                            <Move className="w-3 h-3" />
+                            Pan Y
+                          </Label>
+                          <span className="text-sm font-mono">{facecamSettings.panY}</span>
+                        </div>
+                        <Slider
+                          value={[facecamSettings.panY]}
+                          onValueChange={([value]) =>
+                            setFacecamSettings(prev => ({ ...prev, panY: value }))
+                          }
+                          min={-100}
+                          max={100}
+                          step={5}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
-                </>
-                )}
-
-                <Separator />
-
-                {/* Gameplay Settings */}
-                {splitEnabled && (
-                  <>
-                  <div className="space-y-4">
-                  <div className="flex items-center gap-2 pb-2 border-b">
-                    <Video className="w-4 h-4 text-green-500" />
-                    <h3 className="font-semibold">Gameplay Area</h3>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <Label className="text-sm">Height</Label>
-                        <span className="text-sm font-mono">{gameplaySettings.height}%</span>
-                      </div>
-                      <Slider
-                        value={[gameplaySettings.height]}
-                        onValueChange={([value]) => 
-                          setGameplaySettings(prev => ({ ...prev, height: value }))
-                        }
-                        min={40}
-                        max={80}
-                        step={1}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <Label className="text-sm flex items-center gap-1">
-                          <ZoomIn className="w-3 h-3" />
-                          Zoom
-                        </Label>
-                        <span className="text-sm font-mono">{gameplaySettings.zoom}%</span>
-                      </div>
-                      <Slider
-                        value={[gameplaySettings.zoom]}
-                        onValueChange={([value]) => 
-                          setGameplaySettings(prev => ({ ...prev, zoom: value }))
-                        }
-                        min={50}
-                        max={200}
-                        step={5}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <Label className="text-sm flex items-center gap-1">
-                          <Move className="w-3 h-3" />
-                          Pan X
-                        </Label>
-                        <span className="text-sm font-mono">{gameplaySettings.panX}</span>
-                      </div>
-                      <Slider
-                        value={[gameplaySettings.panX]}
-                        onValueChange={([value]) => 
-                          setGameplaySettings(prev => ({ ...prev, panX: value }))
-                        }
-                        min={-100}
-                        max={100}
-                        step={5}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <Label className="text-sm flex items-center gap-1">
-                          <Move className="w-3 h-3" />
-                          Pan Y
-                        </Label>
-                        <span className="text-sm font-mono">{gameplaySettings.panY}</span>
-                      </div>
-                      <Slider
-                        value={[gameplaySettings.panY]}
-                        onValueChange={([value]) => 
-                          setGameplaySettings(prev => ({ ...prev, panY: value }))
-                        }
-                        min={-100}
-                        max={100}
-                        step={5}
-                      />
-                    </div>
-                  </div>
-                </div>
-                </>
-                )}
               </CardContent>
             </Card>
 
@@ -1311,38 +1265,42 @@ export default function VideoClipper() {
                 <div className="relative aspect-[9/16] bg-black rounded-lg overflow-hidden max-h-[400px] mx-auto">
                   {splitEnabled ? (
                     <>
-                      {/* Split View */}
+                      {/* Split View - Layout Preview Only */}
                       <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-blue-900/40 to-blue-900/20 border-b-2 border-blue-500/60" style={{ height: `${facecamSettings.height}%` }}>
                         <div className="absolute inset-0 flex items-center justify-center text-white/80">
                           <div className="text-center p-4">
                             <span className="block text-lg font-bold mb-1">Facecam</span>
-                            <div className="flex gap-2 justify-center text-xs">
-                              <span className="bg-black/50 px-2 py-1 rounded">Zoom: {facecamSettings.zoom}%</span>
-                              <span className="bg-black/50 px-2 py-1 rounded">Pan: {facecamSettings.panX}, {facecamSettings.panY}</span>
-                            </div>
+                            <span className="text-xs">Layout preview (top {facecamSettings.height}%)</span>
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-green-900/40 to-green-900/20 border-t-2 border-green-500/60" style={{ height: `${gameplaySettings.height}%` }}>
                         <div className="absolute inset-0 flex items-center justify-center text-white/80">
                           <div className="text-center p-4">
                             <span className="block text-lg font-bold mb-1">Gameplay</span>
-                            <div className="flex gap-2 justify-center text-xs">
-                              <span className="bg-black/50 px-2 py-1 rounded">Zoom: {gameplaySettings.zoom}%</span>
-                              <span className="bg-black/50 px-2 py-1 rounded">Pan: {gameplaySettings.panX}, {gameplaySettings.panY}</span>
-                            </div>
+                            <span className="text-xs">Layout preview (bottom {gameplaySettings.height}%)</span>
                           </div>
                         </div>
                       </div>
                     </>
                   ) : (
                     <>
-                      {/* Full View */}
+                      {/* Full View - With Zoom/Pan */}
                       <div className="absolute inset-0 flex items-center justify-center text-white/80 bg-gradient-to-br from-gray-900/40 to-gray-900/20">
                         <div className="text-center p-4">
-                          <span className="block text-lg font-bold mb-1">Full Video</span>
-                          <span className="text-sm">9:16 vertical format</span>
+                          <span className="block text-lg font-bold mb-2">Full Video</span>
+                          <div className="flex flex-col gap-2 justify-center text-xs">
+                            <div className="bg-black/50 px-3 py-1.5 rounded">
+                              <span className="text-green-400">Zoom:</span> {facecamSettings.zoom}%
+                            </div>
+                            <div className="bg-black/50 px-3 py-1.5 rounded">
+                              <span className="text-green-400">Pan X:</span> {facecamSettings.panX}
+                            </div>
+                            <div className="bg-black/50 px-3 py-1.5 rounded">
+                              <span className="text-green-400">Pan Y:</span> {facecamSettings.panY}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </>

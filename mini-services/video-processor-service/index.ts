@@ -154,8 +154,33 @@ async function processClip(
       // Stack facecam and gameplay
       filterComplex.push(`[facecam][gameplay]vstack[video_out]`)
     } else {
-      // Full video mode: No splitting, just scale to 9:16
-      filterComplex.push(`[0:v]scale=${outputWidth}:${outputHeight},setsar=1:1[video_out]`)
+      // Full video mode: Scale to 9:16 with zoom/pan
+      const zoom = Math.max(0.5, Math.min(facecamSettings.zoom / 100, 2))
+
+      // First scale video to output width (1080)
+      filterComplex.push(`[0:v]scale=${outputWidth}:-2[scaled]`)
+
+      // Calculate crop dimensions based on zoom
+      const cropWidth = Math.floor(outputWidth / zoom)
+      const cropHeight = Math.floor(outputHeight / zoom)
+
+      // Calculate crop position based on pan settings
+      const panX = Math.floor((outputWidth - cropWidth) / 2 + facecamSettings.panX * 5)
+      const panY = Math.floor((outputHeight - cropHeight) / 2 + facecamSettings.panY * 5)
+
+      // Ensure crop dimensions and positions are valid
+      const validWidth = Math.max(1, Math.min(cropWidth, outputWidth))
+      const validHeight = Math.max(1, Math.min(cropHeight, outputHeight))
+      const validX = Math.max(0, Math.min(panX, outputWidth - validWidth))
+      const validY = Math.max(0, Math.min(panY, outputHeight - validHeight))
+
+      // Crop from scaled video and scale to output height
+      filterComplex.push(
+        `[scaled]` +
+        `crop=${validWidth}:${validHeight}:${validX}:${validY},` +
+        `scale=${outputWidth}:${outputHeight},` +
+        `setsar=1:1[video_out]`
+      )
     }
     
     // Add watermark text if provided
