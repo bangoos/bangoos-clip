@@ -263,7 +263,7 @@ export default function VideoClipper() {
   useEffect(() => {
     // Fetch processed videos on mount
     fetchProcessedVideos()
-    
+
     const socketInstance = io('/?XTransformPort=3002', {
       transports: ['websocket', 'polling']
     })
